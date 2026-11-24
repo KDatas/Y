@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-   <script>
+    <script>
   // URLに ?exclude=1 が付いていたら、このブラウザを除外対象として記憶する
   if (location.search.includes('exclude=1')) {
     localStorage.setItem('ga_exclude', 'true');
@@ -1220,6 +1220,14 @@
     function splitMultiValues(str) {
       return String(str || '')
         .split(/[,、\/／\n]+/)
+        .map(s => s.trim())
+        .filter(Boolean);
+    }
+
+    // 人物名・クレジット用（「/」「／」は別名・読み併記のため区切り文字にしない）
+    function splitPersonNames(str) {
+      return String(str || '')
+        .split(/[,、\n]+/)
         .map(s => s.trim())
         .filter(Boolean);
     }
@@ -2610,7 +2618,7 @@
 
       const shCompMap = {};
       shorts.forEach(v => {
-        splitMultiValues(v.composer).forEach(c => { shCompMap[c] = (shCompMap[c] || 0) + 1; });
+        splitPersonNames(v.composer).forEach(c => { shCompMap[c] = (shCompMap[c] || 0) + 1; });
       });
       const shCompEntries = Object.entries(shCompMap).sort((a, b) => b[1] - a[1]);
       const shLabels = shCompEntries.length ? shCompEntries.map(x => x[0]) : ['データなし'];
@@ -2624,7 +2632,7 @@
           onClick: (evt, elems) => {
             if (!elems.length || !shCompEntries.length) return;
             const comp = shLabels[elems[0].index];
-            showVideoDetailModal(`🎼 Short 作曲者「${comp}」一覧`, shorts.filter(v => splitMultiValues(v.composer).includes(comp)), 'short');
+            showVideoDetailModal(`🎼 Short 作曲者「${comp}」一覧`, shorts.filter(v => splitPersonNames(v.composer).includes(comp)), 'short');
           },
           plugins: { centerText: { label: '件数', unit: '' }, legend: { display: false } }
         }
@@ -2638,7 +2646,7 @@
       const fulls = filterBySelectedYear(appData.fullVideos);
       const map = {};
       fulls.forEach(v => {
-        splitMultiValues(v[activeCreditKey]).forEach(name => { map[name] = (map[name] || 0) + 1; });
+        splitPersonNames(v[activeCreditKey]).forEach(name => { map[name] = (map[name] || 0) + 1; });
       });
       const entries = Object.entries(map).sort((a, b) => b[1] - a[1]);
       const labels = entries.length ? entries.map(x => x[0]) : ['データなし'];
@@ -2653,7 +2661,7 @@
           onClick: (evt, elems) => {
             if (!elems.length || !entries.length) return;
             const name = labels[elems[0].index];
-            showVideoDetailModal(`✨ クレジット「${name}」関連Full動画`, fulls.filter(v => splitMultiValues(v[activeCreditKey]).includes(name)), 'full');
+            showVideoDetailModal(`✨ クレジット「${name}」関連Full動画`, fulls.filter(v => splitPersonNames(v[activeCreditKey]).includes(name)), 'full');
           },
           plugins: { centerText: { label: '件数', unit: '' }, legend: { display: false } }
         }
