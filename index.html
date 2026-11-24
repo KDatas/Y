@@ -1,6 +1,23 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+<script>
+  // URLに ?exclude=1 が付いていたら、このブラウザを除外対象として記憶する
+  if (location.search.includes('exclude=1')) {
+    localStorage.setItem('ga_exclude', 'true');
+  }
+  // 除外対象として記憶されているブラウザなら、GA4の計測を完全に停止する
+  if (localStorage.getItem('ga_exclude') === 'true') {
+    window['ga-disable-G-TZCENBQRCC'] = true;
+  }
+</script>
+<!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtm.js?id=G-TZCENBQRCC"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+</script> 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>雪見 活動レポート ダッシュボード</title>
