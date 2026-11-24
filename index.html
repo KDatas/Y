@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
- <script>
+   <script>
   // URLに ?exclude=1 が付いていたら、このブラウザを除外対象として記憶する
   if (location.search.includes('exclude=1')) {
     localStorage.setItem('ga_exclude', 'true');
@@ -87,6 +87,134 @@
       border: 1px solid #cbd5e1;
       color: #94a3b8;
     }
+
+    /* =========================================================================
+       ダークモード用スタイル（html.dark 付与時に適用）
+       ========================================================================= */
+    html.dark body {
+      background-color: #0e0c18;
+      color: #e2e8f0;
+    }
+    html.dark .hero-gradient {
+      background: linear-gradient(135deg, #1b0933 0%, #3b1068 55%, #581475 100%);
+    }
+    html.dark .card-shadow {
+      box-shadow: 0 6px 22px -4px rgba(0, 0, 0, 0.55), 0 1px 3px rgba(0, 0, 0, 0.35);
+    }
+    html.dark .custom-scroll::-webkit-scrollbar-track {
+      background: #181428;
+    }
+    html.dark .custom-scroll::-webkit-scrollbar-thumb {
+      background: #4c3a75;
+    }
+    html.dark .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #7e22ce;
+    }
+    html.dark .tab-btn-idle {
+      color: #cbd5e1;
+    }
+    html.dark .tab-btn-idle:hover {
+      background: #2a2145;
+      color: #e9d5ff;
+    }
+    html.dark .drop-active {
+      border-color: #c084fc !important;
+      background-color: #261c42 !important;
+    }
+    html.dark .heatmap-zero-hatch {
+      background-color: #161326;
+      background-image: repeating-linear-gradient(
+        -45deg,
+        rgba(148, 163, 184, 0.14),
+        rgba(148, 163, 184, 0.14) 3px,
+        transparent 3px,
+        transparent 7px
+      );
+      border: 1px solid #2d2648;
+      color: #64748b;
+    }
+
+    /* 背景・枠線・テキストのダークモード上書き */
+    html.dark .bg-white { background-color: #181428 !important; }
+    html.dark .bg-slate-50,
+    html.dark .bg-slate-50\/70,
+    html.dark .bg-slate-50\/80,
+    html.dark .bg-slate-50\/90 { background-color: #211c36 !important; }
+    html.dark .bg-purple-50,
+    html.dark .bg-purple-50\/60,
+    html.dark .bg-purple-50\/70,
+    html.dark .bg-purple-50\/80 { background-color: #261c42 !important; }
+    html.dark .bg-fuchsia-50 { background-color: #32183d !important; }
+    html.dark .bg-indigo-50 { background-color: #1f2247 !important; }
+    html.dark .bg-pink-50 { background-color: #381832 !important; }
+    html.dark .bg-sky-50 { background-color: #13283d !important; }
+    html.dark .bg-amber-50 { background-color: #332512 !important; }
+    html.dark .bg-emerald-50\/70 { background-color: #122c26 !important; }
+    html.dark .bg-emerald-100 { background-color: #164438 !important; }
+    html.dark .bg-purple-100\/70 { background-color: #2f234f !important; }
+
+    html.dark .border-purple-100,
+    html.dark .border-purple-100\/80,
+    html.dark .border-purple-200,
+    html.dark .border-purple-200\/50 { border-color: #2f264f !important; }
+    html.dark .border-slate-100,
+    html.dark .border-slate-200 { border-color: #2c2645 !important; }
+    html.dark .border-pink-100 { border-color: #4a2042 !important; }
+    html.dark .border-sky-200 { border-color: #1e4266 !important; }
+    html.dark .border-emerald-200\/80 { border-color: #1f4f42 !important; }
+    html.dark .border-rose-100 { border-color: #4d2030 !important; }
+    html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) { border-color: #2a2342 !important; }
+
+    html.dark .text-slate-900 { color: #f8fafc !important; }
+    html.dark .text-slate-800 { color: #f1f5f9 !important; }
+    html.dark .text-slate-700 { color: #e2e8f0 !important; }
+    html.dark .text-slate-600 { color: #cbd5e1 !important; }
+    html.dark .text-slate-500 { color: #94a3b8 !important; }
+    html.dark .text-slate-400 { color: #7c89a3 !important; }
+    html.dark .text-purple-950,
+    html.dark .text-purple-900,
+    html.dark .text-purple-800,
+    html.dark .text-purple-700 { color: #d8b4fe !important; }
+    html.dark .text-purple-600 { color: #c084fc !important; }
+    html.dark .text-fuchsia-950,
+    html.dark .text-fuchsia-700,
+    html.dark .text-fuchsia-600 { color: #f0abfc !important; }
+    html.dark .text-indigo-700,
+    html.dark .text-indigo-600 { color: #a5b4fc !important; }
+    html.dark .text-pink-700,
+    html.dark .text-pink-600 { color: #f9a8d4 !important; }
+    html.dark .text-rose-600 { color: #fda4af !important; }
+    html.dark .text-sky-900,
+    html.dark .text-sky-600 { color: #7dd3fc !important; }
+    html.dark .text-amber-700 { color: #fcd34d !important; }
+    html.dark .text-emerald-800,
+    html.dark .text-emerald-700,
+    html.dark .text-emerald-600 { color: #6ee7b7 !important; }
+
+    html.dark .hover\:bg-purple-50:hover,
+    html.dark .hover\:bg-purple-50\/40:hover,
+    html.dark .hover\:bg-purple-50\/70:hover,
+    html.dark .hover\:bg-purple-100:hover { background-color: #2f234f !important; }
+    html.dark .hover\:bg-fuchsia-50\/40:hover,
+    html.dark .hover\:bg-fuchsia-100:hover { background-color: #3d1d4a !important; }
+    html.dark .hover\:bg-slate-50:hover,
+    html.dark .hover\:bg-white:hover { background-color: #2a2442 !important; }
+
+    html.dark input[type="text"],
+    html.dark select {
+      background-color: #211c36;
+      color: #f1f5f9;
+      border-color: #3b3061;
+    }
+    html.dark header select {
+      background-color: rgba(255, 255, 255, 0.14);
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+    html.dark select option {
+      background-color: #181428;
+      color: #f1f5f9;
+    }
   </style>
 </head>
 <body class="min-h-screen antialiased pb-8">
@@ -105,6 +233,10 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
+          <button id="themeToggleBtn" onclick="toggleThemeMode()" class="inline-flex items-center gap-1.5 bg-white/15 hover:bg-white/25 border border-white/25 text-white px-2.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer" title="ライトモード／ダークモードを切り替え">
+            <span id="themeToggleIcon">🌙</span><span id="themeToggleText">ダーク</span>
+          </button>
+
           <select id="yearFilterSelect" onchange="onYearFilterChange()" class="bg-white/15 hover:bg-white/20 text-white border border-white/25 rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-purple-300 cursor-pointer">
             <option value="2026" class="text-slate-800">対象：2026年</option>
           </select>
@@ -795,6 +927,59 @@
     // 1. カラー定義＆共通ユーティリティ
     // =========================================================================
     const MIN_VISUAL_YEAR = 2020;
+    const THEME_STORAGE_KEY = 'yukimi_report_theme_mode_v1';
+
+    function isDarkMode() {
+      return document.documentElement.classList.contains('dark');
+    }
+
+    function applyThemeMode(mode, persist = false) {
+      const dark = mode === 'dark';
+      document.documentElement.classList.toggle('dark', dark);
+      const iconEl = document.getElementById('themeToggleIcon');
+      const textEl = document.getElementById('themeToggleText');
+      if (iconEl) iconEl.textContent = dark ? '☀️' : '🌙';
+      if (textEl) textEl.textContent = dark ? 'ライト' : 'ダーク';
+
+      if (typeof Chart !== 'undefined' && Chart.defaults) {
+        Chart.defaults.color = dark ? '#cbd5e1' : '#475569';
+        Chart.defaults.borderColor = dark ? '#2f264f' : '#e2e8f0';
+      }
+
+      if (persist) {
+        try { localStorage.setItem(THEME_STORAGE_KEY, mode); } catch (e) {}
+      }
+    }
+
+    function initThemeMode() {
+      let saved = null;
+      try { saved = localStorage.getItem(THEME_STORAGE_KEY); } catch (e) {}
+      if (saved === 'dark' || saved === 'light') {
+        applyThemeMode(saved, false);
+      } else {
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        applyThemeMode(prefersDark ? 'dark' : 'light', false);
+      }
+      if (window.matchMedia) {
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        const onSysChange = e => {
+          let manual = null;
+          try { manual = localStorage.getItem(THEME_STORAGE_KEY); } catch (err) {}
+          if (!manual) {
+            applyThemeMode(e.matches ? 'dark' : 'light', false);
+            renderAll();
+          }
+        };
+        if (typeof mq.addEventListener === 'function') mq.addEventListener('change', onSysChange);
+      }
+    }
+
+    function toggleThemeMode() {
+      const next = isDarkMode() ? 'light' : 'dark';
+      applyThemeMode(next, true);
+      renderAll();
+      showToast(next === 'dark' ? '🌙 ダークモードに切り替えました' : '☀️ ライトモードに切り替えました');
+    }
 
     const PALETTE = [
       '#9333ea', '#ec4899', '#06b6d4', '#f59e0b', '#10b981',
@@ -1063,10 +1248,10 @@
           ctx.save();
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillStyle = '#64748b';
+          ctx.fillStyle = isDarkMode() ? '#94a3b8' : '#64748b';
           ctx.font = '700 10px "Inter", "Noto Sans JP", sans-serif';
           ctx.fillText(opts.label, cx, cy - 10);
-          ctx.fillStyle = '#1e1b2e';
+          ctx.fillStyle = isDarkMode() ? '#f8fafc' : '#1e1b2e';
           ctx.font = '900 16px "Inter", "Noto Sans JP", sans-serif';
           ctx.fillText(`${total}${opts.unit || ''}`, cx, cy + 8);
           ctx.restore();
@@ -1084,7 +1269,7 @@
           ctx.save();
           ctx.textAlign = 'center';
           ctx.textBaseline = 'bottom';
-          ctx.fillStyle = '#475569';
+          ctx.fillStyle = isDarkMode() ? '#cbd5e1' : '#475569';
           ctx.font = '700 10px "Inter", "Noto Sans JP", sans-serif';
 
           let grandTotal = 0;
@@ -1140,6 +1325,30 @@
         }
         const canvas = document.getElementById(canvasId);
         if (!canvas) return null;
+
+        // ダークモード時は全チャートの文字色・グリッド線・ドーナツ境界線を自動補正
+        if (isDarkMode() && config) {
+          const tickColor = '#cbd5e1';
+          const gridColor = '#2a2342';
+          if (config.options && config.options.scales) {
+            Object.values(config.options.scales).forEach(sc => {
+              if (!sc) return;
+              if (sc.ticks) sc.ticks.color = tickColor;
+              if (sc.grid && sc.grid.display !== false) sc.grid.color = gridColor;
+              if (sc.angleLines) sc.angleLines.color = gridColor;
+              if (sc.pointLabels) sc.pointLabels.color = '#e2e8f0';
+            });
+          }
+          if (config.options && config.options.plugins && config.options.plugins.legend && config.options.plugins.legend.labels) {
+            config.options.plugins.legend.labels.color = '#cbd5e1';
+          }
+          if (config.type === 'doughnut' && config.data && Array.isArray(config.data.datasets)) {
+            config.data.datasets.forEach(ds => {
+              ds.borderColor = '#181428';
+            });
+          }
+        }
+
         chartInstances[key] = new Chart(canvas, config);
         return chartInstances[key];
       } catch (e) {
@@ -3728,6 +3937,7 @@
     // 16. 初期化
     // =========================================================================
     window.addEventListener('DOMContentLoaded', () => {
+      initThemeMode();
       loadStateFromLocal();
       setupDragAndDrop();
       refreshYearSelectors();
