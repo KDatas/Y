@@ -1,0 +1,141 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800&display=swap');
+
+body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background-color: #f6f4fb;
+    color: #1e1b2e;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.card {
+    background: #ffffff;
+    border-radius: 1.15rem;
+    border: 1px solid rgba(139, 92, 246, 0.12);
+    box-shadow: 0 4px 20px rgba(76, 29, 149, 0.04);
+}
+
+.nav-tab {
+    padding: 0.45rem 0.9rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #64748b;
+    transition: all 0.15s;
+}
+.nav-tab:hover {
+    background-color: #f3e8ff;
+    color: #6b21a8;
+}
+.nav-tab.active {
+    background: linear-gradient(135deg, #7c3aed, #9333ea);
+    color: #ffffff;
+    box-shadow: 0 2px 10px rgba(124, 58, 237, 0.3);
+}
+
+/* カレンダー（月間・年間共通） */
+.cal-hatch {
+    background: repeating-linear-gradient(45deg, #f3f4f6, #f3f4f6 8px, #fafafa 8px, #fafafa 16px);
+}
+.cal-sun-hol { background-color: #fef2f2; }
+.cal-sat { background-color: #eff6ff; }
+
+.cal-year-wrap {
+    max-height: 74vh;
+    overflow: auto;
+}
+.cal-year-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+    width: 1910px;
+}
+.cal-sticky-corner {
+    position: sticky;
+    top: 0;
+    left: 0;
+    z-index: 30;
+    background: #f5f3ff;
+    color: #5b21b6;
+    border-right: 1px solid #e9d5ff;
+    border-bottom: 1px solid #e9d5ff;
+}
+.cal-sticky-month {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: #f5f3ff;
+    color: #5b21b6;
+    border-right: 1px solid #e9d5ff;
+    border-bottom: 1px solid #e9d5ff;
+}
+.cal-sticky-day {
+    position: sticky;
+    left: 0;
+    z-index: 20;
+    background: #ffffff;
+    border-right: 1px solid #ede9fe;
+    border-bottom: 1px solid #f1f5f9;
+}
+.cal-year-cell {
+    vertical-align: top;
+    border-right: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f5f9;
+    padding: 4px;
+}
+.cal-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-all;
+}
+
+/* ダークモード */
+body.dark {
+    background-color: #0f0d1a;
+    color: #ede9fe;
+}
+body.dark .card {
+    background-color: #191627;
+    border-color: rgba(167, 139, 250, 0.16);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+body.dark .nav-tab { color: #a5b4fc; }
+body.dark .nav-tab:hover { background-color: rgba(139, 92, 246, 0.2); color: #fff; }
+body.dark .text-slate-400 { color: #94a3b8; }
+body.dark .text-slate-500 { color: #cbd5e1; }
+body.dark .text-slate-600 { color: #e2e8f0; }
+body.dark .border-slate-100,
+body.dark .border-slate-200 { border-color: rgba(148, 163, 184, 0.18); }
+body.dark select,
+body.dark input[type="text"],
+body.dark input[type="date"] {
+    background-color: #231f36;
+    color: #f8fafc;
+    border-color: rgba(167, 139, 250, 0.25);
+}
+body.dark .cal-hatch {
+    background: repeating-linear-gradient(45deg, #161324, #161324 8px, #1d1930 8px, #1d1930 16px);
+}
+body.dark .cal-sun-hol {
+    background-color: rgba(244, 63, 94, 0.18);
+    box-shadow: inset 3px 0 0 rgba(251, 113, 133, 0.7);
+}
+body.dark .cal-sat {
+    background-color: rgba(56, 189, 248, 0.16);
+    box-shadow: inset 3px 0 0 rgba(56, 189, 248, 0.7);
+}
+body.dark .cal-sticky-corner,
+body.dark .cal-sticky-month {
+    background: #241e3d;
+    color: #ddd6fe;
+    border-color: rgba(167, 139, 250, 0.25);
+}
+body.dark .cal-sticky-day {
+    background: #191627;
+    color: #cbd5e1;
+    border-color: rgba(167, 139, 250, 0.18);
+}
+body.dark .cal-year-cell {
+    border-color: rgba(148, 163, 184, 0.12);
+}
