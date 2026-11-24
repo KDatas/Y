@@ -1714,6 +1714,29 @@
       return 0;
     }
 
+    // セルの表示文字列を安全に取得する（「11/20 → 46346」等の日付シリアル値変換を防止）
+    function getCellDisplayText(ws, rowIdx, colIdx, fallbackVal) {
+      if (ws) {
+        const cellRef = XLSX.utils.encode_cell({ r: rowIdx, c: colIdx });
+        const cell = ws[cellRef];
+        if (cell) {
+          if (cell.w != null && String(cell.w).trim() !== '') {
+            return String(cell.w).trim();
+          }
+          if (cell.t === 'n' && typeof cell.v === 'number' && cell.z && /[mdy]/i.test(String(cell.z))) {
+            const d = new Date(Math.round((cell.v - 25569) * 86400 * 1000));
+            if (!isNaN(d.getTime())) {
+              const y = d.getUTCFullYear();
+              const m = d.getUTCMonth() + 1;
+              const day = d.getUTCDate();
+              return /y/i.test(String(cell.z)) ? `${y}/${m}/${day}` : `${m}/${day}`;
+            }
+          }
+        }
+      }
+      return String(fallbackVal == null ? '' : fallbackVal).trim();
+    }
+
     async function handleFilesSelected(fileList) {
       const files = Array.from(fileList || []);
       if (!files.length) return;
@@ -1756,20 +1779,21 @@
           }
 
           const buf = await file.arrayBuffer();
-          const wb = XLSX.read(buf, { type: 'array', cellDates: false });
+          const isCsv = fname.endsWith('.csv');
+          const wb = XLSX.read(buf, isCsv ? { type: 'array', raw: true } : { type: 'array', cellDates: false });
           const sheetName = wb.SheetNames[0];
           const ws = wb.Sheets[sheetName];
           const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
           if (rows.length < 2) continue;
 
           if (/stream/i.test(fname)) {
-            const parsed = parseStreamingRows(rows);
+            const parsed = parseStreamingRows(rows, ws);
             appData.streams = parsed;
             appData.loadedFlags.streaming = true;
             anyLoaded = true;
             debugLines.push(`✅ Streaming: ${parsed.length}件 (${file.name})`);
           } else if (/short/i.test(fname)) {
-            const parsed = parseShortRows(rows);
+            const parsed = parseShortRows(rows, ws);
             appData.shortVideos = parsed;
             appData.loadedFlags.short = true;
             anyLoaded = true;
@@ -1781,13 +1805,13 @@
             anyLoaded = true;
             debugLines.push(`✅ Set list: ${parsed.length}曲 (${file.name})`);
           } else if (/ivent|event/i.test(fname)) {
-            const parsed = parseEventRows(rows);
+            const parsed = parseEventRows(rows, ws);
             appData.events = parsed;
             appData.loadedFlags.event = true;
             anyLoaded = true;
             debugLines.push(`✅ Ivent: ${parsed.length}件 (${file.name})`);
           } else if (/song|full/i.test(fname)) {
-            const parsed = parseSongRows(rows);
+            const parsed = parseSongRows(rows, ws);
             appData.fullVideos = parsed;
             appData.loadedFlags.song = true;
             anyLoaded = true;
@@ -1819,18 +1843,18 @@
       document.getElementById('fileInput').value = '';
     }
 
-    function parseStreamingRows(rows) {
+    function parseStreamingRows(rows, ws) {
       const list = [];
       for (let i = 1; i < rows.length; i++) {
         const r = rows[i];
         if (!r || (!r[0] && !r[1])) continue;
         const dt = parseFlexibleDate(r[1]);
         if (!dt) continue;
-        const title = String(r[0] || '').trim() || '(無題)';
-        const errFlag = String(r[2] || '').trim();
+        const title = getCellDisplayText(ws, i, 0, r[0]) || '(無題)';
+        const errFlag = getCellDisplayText(ws, i, 2, r[2]);
         const isError = errFlag !== '' && !/^(0|false|no|なし|-)$/i.test(errFlag);
         const seconds = parseDurationSeconds(r[7]);
-        const tags = splitMultiValues(r[8]);
+        const tags = splitMultiValues(getCellDisplayText(ws, i, 8, r[8]));
         const mm = String(dt.month).padStart(2, '0');
         const dd = String(dt.day).padStart(2, '0');
         const hh = String(dt.hour).padStart(2, '0');
@@ -1851,13 +1875,14 @@
       return list;
     }
 
-    function parseSongRows(rows) {
+    function parseSongRows(rows, ws) {
       const list = [];
       for (let i = 1; i < rows.length; i++) {
         const r = rows[i];
-        if (!r || !r[0]) continue;
-        const title = String(r[0] || '').trim();
-        const type = String(r[21] || 'Solo').trim() || 'Solo';
+        if (!r) continue;
+        const title = getCellDisplayText(ws, i, 0, r[0]);
+        if (!title) continue;
+        const type = getCellDisplayText(ws, i, 21, r[21]) || 'Solo';
         if (/xfd|announce/i.test(`${title} ${type}`)) continue;
         const dt = parseFlexibleDate(r[16]);
         if (!dt) continue;
@@ -1869,31 +1894,32 @@
           dateStr: `${dt.year}/${mm}/${dd}`,
           sortKey: `${dt.year}${mm}${dd}`,
           title,
-          illustrator: String(r[6] || '').trim(),
-          mix: String(r[7] || '').trim(),
-          movie: String(r[8] || '').trim(),
-          composer: String(r[9] || '').trim(),
-          vocal: String(r[10] || '雪見').trim(),
-          platform: String(r[14] || 'YouTube').trim(),
+          illustrator: getCellDisplayText(ws, i, 6, r[6]),
+          mix: getCellDisplayText(ws, i, 7, r[7]),
+          movie: getCellDisplayText(ws, i, 8, r[8]),
+          composer: getCellDisplayText(ws, i, 9, r[9]),
+          vocal: getCellDisplayText(ws, i, 10, r[10]) || '雪見',
+          platform: getCellDisplayText(ws, i, 14, r[14]) || 'YouTube',
           type
         });
       }
       return list;
     }
 
-    function parseShortRows(rows) {
+    function parseShortRows(rows, ws) {
       const list = [];
       for (let i = 1; i < rows.length; i++) {
         const r = rows[i];
-        if (!r || !r[0]) continue;
-        const title = String(r[0] || '').trim();
+        if (!r) continue;
+        const title = getCellDisplayText(ws, i, 0, r[0]);
+        if (!title) continue;
         if (/xfd|announce/i.test(title)) continue;
         const dt = parseFlexibleDate(r[7]);
         if (!dt) continue;
-        const platform = String(r[5] || '').trim();
+        const platform = getCellDisplayText(ws, i, 5, r[5]);
         const plats = splitMultiValues(platform).map(p => p.toLowerCase());
         const isXOnly = plats.length > 0 && plats.every(p => p === 'x' || p === 'twitter' || p === 'x(twitter)');
-        const hasFullRel = String(r[10] || '').trim() !== '';
+        const hasFullRel = getCellDisplayText(ws, i, 10, r[10]) !== '';
         const mm = String(dt.month).padStart(2, '0');
         const dd = String(dt.day).padStart(2, '0');
         list.push({
@@ -1902,7 +1928,7 @@
           dateStr: `${dt.year}/${mm}/${dd}`,
           sortKey: `${dt.year}${mm}${dd}`,
           title,
-          composer: String(r[3] || '').trim(),
+          composer: getCellDisplayText(ws, i, 3, r[3]),
           platform: platform || 'YouTube',
           category: hasFullRel ? 'Full関連' : 'Shortのみ',
           isExcluded: isXOnly
@@ -1915,14 +1941,16 @@
       const list = [];
       for (let i = 1; i < rows.length; i++) {
         const r = rows[i];
-        if (!r || (!r[0] && !r[3])) continue;
+        if (!r) continue;
+        const rawTitle = getCellDisplayText(ws, i, 0, r[0]);
+        const rawSongs = getCellDisplayText(ws, i, 3, r[3]);
+        if (!rawTitle && !rawSongs) continue;
         const dt = parseFlexibleDate(r[1]);
         if (!dt) continue;
-        const streamTitle = String(r[0] || '').trim() || '(無題)';
-        const type = normalizeSetlistType(r[2] || '歌枠');
-        const rawSongs = String(r[3] || '').trim();
+        const streamTitle = rawTitle || '(無題)';
+        const type = normalizeSetlistType(getCellDisplayText(ws, i, 2, r[2]) || '歌枠');
         if (!rawSongs) continue;
-        let url = String(r[4] || '').trim();
+        let url = getCellDisplayText(ws, i, 4, r[4]);
         if (ws) {
           const cellRef = XLSX.utils.encode_cell({ r: i, c: 4 });
           const cell = ws[cellRef];
@@ -1951,13 +1979,14 @@
       return list;
     }
 
-    function parseEventRows(rows) {
+    function parseEventRows(rows, ws) {
       const list = [];
       for (let i = 1; i < rows.length; i++) {
         const r = rows[i];
-        if (!r || !r[0]) continue;
-        const title = String(r[0] || '').trim();
-        const type = String(r[1] || 'その他').trim();
+        if (!r) continue;
+        const title = getCellDisplayText(ws, i, 0, r[0]);
+        if (!title) continue;
+        const type = getCellDisplayText(ws, i, 1, r[1]) || 'その他';
         if (/record|release/i.test(`${title} ${type}`)) continue;
         const dt = parseFlexibleDate(r[3]);
         if (!dt) continue;
@@ -2163,10 +2192,17 @@
         : `月平均 ${sgAvg}回`;
 
       document.getElementById('kpiEvents').textContent = events.length.toLocaleString();
-      const realCnt = events.filter(e => (e.channel || classifyEventChannel(e.title, e.type)) === 'リアル').length;
-      const netCnt = events.length - realCnt;
+      const evTypeCounts = {};
+      events.forEach(e => {
+        const tp = String(e.type || '').trim() || 'その他';
+        evTypeCounts[tp] = (evTypeCounts[tp] || 0) + 1;
+      });
+      const evTypeBreakdown = Object.entries(evTypeCounts)
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'ja'))
+        .map(([tp, cnt]) => `${tp} ${cnt}`)
+        .join(' / ');
       const evBrk = document.getElementById('kpiEventsBreakdown');
-      evBrk.textContent = events.length ? `リアル ${realCnt} / オンライン ${netCnt}` : '内訳：-';
+      evBrk.textContent = evTypeBreakdown || '内訳：-';
       evBrk.title = evBrk.textContent;
     }
 
@@ -3190,13 +3226,24 @@
         window._slUniqueMap = map;
         grid.innerHTML = entries.length ? entries.map(([title, rows]) => {
           const latest = rows.slice().sort((a, b) => b.sortKey.localeCompare(a.sortKey))[0];
-          const c = getSetlistTypeColor(latest.type);
-          return `<div onclick="showSetlistDetailModal('🎵 ${escapeHtml(title).replace(/'/g, "\\'")} 歌唱履歴', window._slUniqueMap['${escapeHtml(title).replace(/'/g, "\\'")}'])" class="rounded-xl p-2 bg-slate-50/80 hover:bg-purple-50/70 border border-slate-100 hover:border-purple-200 transition cursor-pointer flex flex-col justify-between gap-1">
+          const typeCounts = {};
+          rows.forEach(r => {
+            const tp = normalizeSetlistType(r.type);
+            typeCounts[tp] = (typeCounts[tp] || 0) + 1;
+          });
+          const typeBadgesHtml = Object.entries(typeCounts)
+            .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'ja'))
+            .map(([tp, cnt]) => {
+              const tc = getSetlistTypeColor(tp);
+              return `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold leading-none whitespace-nowrap" style="background-color:${tc}1a; color:${tc}; border:1px solid ${tc}44;">${escapeHtml(tp)} ${cnt}</span>`;
+            }).join('');
+          return `<div onclick="showSetlistDetailModal('🎵 ${escapeHtml(title).replace(/'/g, "\\'")} 歌唱履歴', window._slUniqueMap['${escapeHtml(title).replace(/'/g, "\\'")}'])" class="rounded-xl p-2 bg-slate-50/80 hover:bg-purple-50/70 border border-slate-100 hover:border-purple-200 transition cursor-pointer flex flex-col justify-between gap-1.5">
             <div class="flex items-start justify-between gap-1">
               <span class="text-xs font-bold text-slate-800 line-clamp-2">${escapeHtml(title)}</span>
-              <span class="px-1.5 py-0.5 rounded-md text-[10px] font-black shrink-0" style="background:${c}1a; color:${c};">×${rows.length}</span>
+              <span class="px-1.5 py-0.5 rounded-md text-[10px] font-black shrink-0 bg-purple-100/70 text-purple-700 border border-purple-200">×${rows.length}</span>
             </div>
-            <div class="text-[10px] text-slate-400 truncate">${escapeHtml(latest.dateStr)} ${escapeHtml(latest.type)}</div>
+            <div class="flex flex-wrap gap-1">${typeBadgesHtml}</div>
+            <div class="text-[10px] font-mono text-slate-400 truncate">最新 ${escapeHtml(latest.dateStr)}</div>
           </div>`;
         }).join('') : '<div class="col-span-full py-8 text-center text-xs text-slate-400">該当する曲がありません</div>';
       } else {
