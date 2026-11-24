@@ -1,264 +1,482 @@
-// 2. 自動生成カレンダータブ（月間表示・年間表示）
-const autoCalState = {
-    mode: 'month',
-    month: new Date().getMonth() + 1,
-    filterOpen: false,
-    enabledCats: new Set(['stream', 'song', 'short', 'event']),
-    disabledTags: new Set(),
-    holidays: {}
-};
+// =========================================================================
+// 16. TAB 7: 📅 自動連携カレンダー（Excelデータ自動マッピング）
+// =========================================================================
+let autoCalViewMode = 'month'; // 'month' | 'year'
+let autoCalYear = 2026;
+let autoCalMonth = new Date().getMonth() + 1;
+let autoCalFilterOpen = false;
+let autoCalHolidays = {};
+let autoCalHolidaysLoaded = false;
 
-async function initAutoCalendarHolidays() {
-    try {
-        const res = await fetch('https://holidays-jp.github.io/api/v1/date.json');
-        if (res.ok) Object.assign(autoCalState.holidays, await res.json());
-    } catch (e) {}
-    if (appState.activeTab === 'calendar') renderAutoCalendarSection();
+const autoCalHiddenSources = new Set(); // 'full' | 'short' | 'event' | 'stream'
+const autoCalHiddenStreamTags = new Set(); // 配信タグ単位の非表示管理
+
+const AUTO_CAL_SOURCES = [
+  { key: 'stream', label: '配信',      emoji: '🎙️', color: '#9333ea' },
+  { key: 'full',   label: 'Full動画',  emoji: '🎬', color: '#d946ef' },
+  { key: 'short',  label: 'Short動画', emoji: '📱', color: '#0ea5e9' },
+  { key: 'event',  label: 'イベント',  emoji: '🎪', color: '#ec4899' }
+];
+
+async function autoCalFetchHolidays(targetYear = null) {
+  try {
+    if (!autoCalHolidaysLoaded) {
+      autoCalHolidaysLoaded = true;
+      const res = await fetch('https://holidays-jp.github.io/api/v1/date.json');
+      if (res.ok) Object.assign(autoCalHolidays, await res.json());
+      const yearsToFetch = [2020, 2021, 2022, 2023, 2024, 2025];
+      for (const y of yearsToFetch) {
+        try {
+          const ry = await fetch(`https://holidays-jp.github.io/api/v1/${y}/date.json`);
+          if (ry.ok) Object.assign(autoCalHolidays, await ry.json());
+        } catch (e) {}
+      }
+    }
+    if (targetYear) {
+      const ry = await fetch(`https://holidays-jp.github.io/api/v1/${targetYear}/date.json`);
+      if (ry.ok) Object.assign(autoCalHolidays, await ry.json());
+    }
+  } catch (e) {
+    console.warn('祝日データの取得をスキップしました:', e);
+  }
+  if (activeTab === 'calendar') {
+    renderAutoCalBody();
+  }
 }
 
-function setAutoCalMode(mode) {
-    autoCalState.mode = mode;
-    renderAutoCalendarSection();
+function setAutoCalViewMode(mode) {
+  autoCalViewMode = mode;
+  const yearBtn = document.getElementById('autoCalViewBtn-year');
+  const monthBtn = document.getElementById('autoCalViewBtn-month');
+  const activeCls = 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-700 text-white shadow-sm transition cursor-pointer';
+  const idleCls = 'px-2.5 py-1 rounded-lg text-[11px] font-bold text-purple-800 hover:bg-purple-100 transition cursor-pointer';
+  if (yearBtn) yearBtn.className = mode === 'year' ? activeCls : idleCls;
+  if (monthBtn) monthBtn.className = mode === 'month' ? activeCls : idleCls;
+  renderAutoCalendarSection();
 }
 
-function calChangeYear(delta) {
-    appState.targetYear += delta;
-    document.getElementById('yearSelect').value = String(appState.targetYear);
-    document.getElementById('headerYearLabel').textContent = appState.targetYear;
-    renderAll();
+async function autoCalChangeYear(delta) {
+  autoCalYear += delta;
+  await autoCalFetchHolidays(autoCalYear);
+  renderAutoCalendarSection();
 }
 
-function calChangeMonth(delta) {
-    let m = autoCalState.month + delta;
-    if (m < 1) { m = 12; calChangeYear(-1); return; }
-    if (m > 12) { m = 1; calChangeYear(1); return; }
-    autoCalState.month = m;
-    renderAutoCalendarSection();
+async function autoCalChangeMonth(delta) {
+  autoCalMonth += delta;
+  if (autoCalMonth < 1) {
+    autoCalMonth = 12;
+    autoCalYear -= 1;
+    await autoCalFetchHolidays(autoCalYear);
+  } else if (autoCalMonth > 12) {
+    autoCalMonth = 1;
+    autoCalYear += 1;
+    await autoCalFetchHolidays(autoCalYear);
+  }
+  renderAutoCalendarSection();
 }
 
-function calSelectMonth(m) {
-    autoCalState.month = m;
-    autoCalState.mode = 'month';
-    renderAutoCalendarSection();
+function autoCalSelectMonth(m) {
+  autoCalMonth = m;
+  renderAutoCalendarSection();
 }
 
 function toggleAutoCalFilterPanel() {
-    autoCalState.filterOpen = !autoCalState.filterOpen;
-    document.getElementById('calFilterPanel').classList.toggle('hidden', !autoCalState.filterOpen);
+  autoCalFilterOpen = !autoCalFilterOpen;
+  const panel = document.getElementById('autoCalFilterPanel');
+  const chev = document.getElementById('autoCalFilterChevron');
+  if (panel) panel.classList.toggle('hidden', !autoCalFilterOpen);
+  if (chev) chev.textContent = autoCalFilterOpen ? '▲' : '▼';
 }
 
-function getAutoCalItemsForYear(year) {
-    const items = [];
-    appState.data.streams.forEach((s, idx) => {
-        if (getItemYear(s.date) === year) {
-            items.push({ cat: 'stream', date: s.date, title: s.title, sub: `${s.startTime ? s.startTime + ' ・ ' : ''}${s.tag || '雑談'}`, tag: s.tag || '雑談', idx });
-        }
+function getAutoCalYearRawItems(year) {
+  const items = [];
+
+  // 1. 配信（Streaming）：エラー除外以外をすべて対象
+  (appData.streams || []).forEach(s => {
+    if (s.year !== year || s.isError) return;
+    const tags = (s.tags && s.tags.length) ? s.tags : ['雑談'];
+    const primaryTag = tags[0];
+    const mm = String(s.month).padStart(2, '0');
+    const dd = String(s.day).padStart(2, '0');
+    const timePart = (s.dateStr && s.dateStr.includes(' ')) ? s.dateStr.split(' ')[1] : '';
+    items.push({
+      uid: s._uid,
+      source: 'stream',
+      dateKey: `${year}-${mm}-${dd}`,
+      year: s.year, month: s.month, day: s.day,
+      sortKey: s.sortKey || `${year}${mm}${dd}0000`,
+      title: s.title,
+      sub: timePart ? `${timePart} · ${tags.join('/')}` : tags.join('/'),
+      tags,
+      emoji: tags.some(t => /歌枠|カラオケ/i.test(t)) ? '🎤' : (tags.some(t => /ゲーム/i.test(t)) ? '🎮' : '🎙️'),
+      color: getStreamCatColor(primaryTag),
+      raw: s
     });
-    appState.data.songs.forEach((v, idx) => {
-        if (getItemYear(v.date) === year) {
-            items.push({ cat: 'song', date: v.date, title: v.title, sub: v.type || 'FULL動画', tag: '', idx });
-        }
+  });
+
+  // 2. Full動画（Song）：回数除外以外を対象
+  (appData.fullVideos || []).forEach(v => {
+    if (v.year !== year || isFullVideoExcluded(v)) return;
+    const mm = String(v.month).padStart(2, '0');
+    const dd = String(v.day).padStart(2, '0');
+    items.push({
+      uid: v._uid,
+      source: 'full',
+      dateKey: `${year}-${mm}-${dd}`,
+      year: v.year, month: v.month, day: v.day,
+      sortKey: `${year}${mm}${dd}0001`,
+      title: v.title,
+      sub: v.type || 'Solo',
+      tags: [],
+      emoji: '🎬',
+      color: getFullTypeColor(v.type),
+      raw: v
     });
-    appState.data.shorts.forEach((v, idx) => {
-        if (getItemYear(v.date) === year && !v.xOnly) {
-            items.push({ cat: 'short', date: v.date, title: v.title, sub: v.type || 'Short', tag: '', idx });
-        }
+  });
+
+  // 3. Short動画（Short）：Xのみ除外以外を対象
+  (appData.shortVideos || []).forEach(v => {
+    if (v.year !== year || v.isExcluded) return;
+    const mm = String(v.month).padStart(2, '0');
+    const dd = String(v.day).padStart(2, '0');
+    items.push({
+      uid: v._uid,
+      source: 'short',
+      dateKey: `${year}-${mm}-${dd}`,
+      year: v.year, month: v.month, day: v.day,
+      sortKey: `${year}${mm}${dd}0002`,
+      title: v.title,
+      sub: v.category || 'Shortのみ',
+      tags: [],
+      emoji: '📱',
+      color: getShortCatColor(v.category),
+      raw: v
     });
-    appState.data.events.forEach((e, idx) => {
-        if (getItemYear(e.date) === year) {
-            items.push({ cat: 'event', date: e.date, title: e.title, sub: e.type || 'イベント', tag: '', idx });
-        }
+  });
+
+  // 4. イベント（Ivent）
+  (appData.events || []).forEach(e => {
+    if (e.year !== year) return;
+    const mm = String(e.month).padStart(2, '0');
+    const dd = String(e.day).padStart(2, '0');
+    items.push({
+      uid: e._uid,
+      source: 'event',
+      dateKey: `${year}-${mm}-${dd}`,
+      year: e.year, month: e.month, day: e.day,
+      sortKey: `${year}${mm}${dd}0000`,
+      title: e.title,
+      sub: e.type || 'イベント',
+      tags: [],
+      emoji: '🎪',
+      color: getEventTypeColor(e.type),
+      raw: e
     });
-    return items;
+  });
+
+  return items;
 }
 
-function setAutoCalPreset(preset) {
-    const allTags = [...new Set(appState.data.streams.map(s => s.tag || '雑談'))];
-    if (preset === 'all') {
-        autoCalState.enabledCats = new Set(['stream', 'song', 'short', 'event']);
-        autoCalState.disabledTags.clear();
-    } else if (preset === 'none') {
-        autoCalState.enabledCats.clear();
-    } else if (preset === 'no_chat') {
-        autoCalState.enabledCats = new Set(['stream', 'song', 'short', 'event']);
-        autoCalState.disabledTags = new Set(allTags.filter(t => t.includes('雑談')));
-    } else if (preset === 'media_event') {
-        autoCalState.enabledCats = new Set(['song', 'short', 'event']);
+function filterAutoCalItems(rawItems) {
+  const q = (document.getElementById('autoCalSearchInput')?.value || '').trim().toLowerCase();
+  return rawItems.filter(it => {
+    if (autoCalHiddenSources.has(it.source)) return false;
+    if (it.source === 'stream') {
+      const allTagsHidden = it.tags.length > 0 && it.tags.every(t => autoCalHiddenStreamTags.has(t));
+      if (allTagsHidden) return false;
     }
-    renderAutoCalendarSection();
+    if (q) {
+      const hay = `${it.title} ${it.sub} ${(it.tags || []).join(' ')}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function autoCalToggleSource(srcKey) {
+  if (autoCalHiddenSources.has(srcKey)) autoCalHiddenSources.delete(srcKey);
+  else autoCalHiddenSources.add(srcKey);
+  renderAutoCalFilters();
+  renderAutoCalBody();
+}
+
+function autoCalToggleStreamTag(tag) {
+  if (autoCalHiddenStreamTags.has(tag)) autoCalHiddenStreamTags.delete(tag);
+  else autoCalHiddenStreamTags.add(tag);
+  renderAutoCalFilters();
+  renderAutoCalBody();
+}
+
+function autoCalApplyPreset(preset) {
+  autoCalHiddenSources.clear();
+  autoCalHiddenStreamTags.clear();
+  if (preset === 'none') {
+    AUTO_CAL_SOURCES.forEach(s => autoCalHiddenSources.add(s.key));
+  } else if (preset === 'no_chat') {
+    autoCalHiddenStreamTags.add('雑談');
+  } else if (preset === 'works_events') {
+    autoCalHiddenSources.add('stream');
+  }
+  renderAutoCalFilters();
+  renderAutoCalBody();
 }
 
 function renderAutoCalendarSection() {
-    const y = appState.targetYear;
-    document.getElementById('calYearLabel').textContent = `${y}年`;
+  autoCalFetchHolidays(autoCalYear);
 
-    const bM = document.getElementById('btnCalModeMonth');
-    const bY = document.getElementById('btnCalModeYear');
-    const monthNav = document.getElementById('calMonthNavWrap');
+  const yearLabel = document.getElementById('autoCalYearLabel');
+  if (yearLabel) yearLabel.textContent = `${autoCalYear}年`;
 
-    if (autoCalState.mode === 'month') {
-        bM.className = 'px-3 py-1 rounded-full text-xs font-bold bg-purple-600 text-white transition';
-        bY.className = 'px-3 py-1 rounded-full text-xs font-bold text-purple-700 transition';
-        monthNav.classList.remove('hidden');
-    } else {
-        bY.className = 'px-3 py-1 rounded-full text-xs font-bold bg-purple-600 text-white transition';
-        bM.className = 'px-3 py-1 rounded-full text-xs font-bold text-purple-700 transition';
-        monthNav.classList.add('hidden');
-    }
+  const monthNavWrap = document.getElementById('calMonthNavWrap');
+  if (monthNavWrap) {
+    monthNavWrap.classList.toggle('hidden', autoCalViewMode !== 'month');
+  }
 
-    const mBtns = document.getElementById('calMonthButtons');
-    mBtns.innerHTML = Array.from({ length: 12 }, (_, i) => {
-        const m = i + 1;
-        const active = m === autoCalState.month;
-        return `<button onclick="calSelectMonth(${m})" class="px-2 py-0.5 rounded-full text-[11px] font-bold transition ${active ? 'bg-purple-600 text-white' : 'text-purple-800 hover:bg-purple-200/60'}">${m}月</button>`;
+  const monthPillsEl = document.getElementById('autoCalMonthPills');
+  if (monthPillsEl) {
+    monthPillsEl.innerHTML = Array.from({ length: 12 }, (_, i) => {
+      const m = i + 1;
+      const active = m === autoCalMonth;
+      const cls = active
+        ? 'px-2 py-0.5 rounded-lg text-[11px] font-black bg-purple-700 text-white shadow-sm transition cursor-pointer whitespace-nowrap'
+        : 'px-1.5 py-0.5 rounded-lg text-[11px] font-bold text-purple-800 hover:bg-purple-100 transition cursor-pointer whitespace-nowrap';
+      return `<button type="button" onclick="autoCalSelectMonth(${m})" class="${cls}">${m}月</button>`;
     }).join('');
+  }
 
-    renderAutoCalFilters();
-    renderAutoCalBody();
+  renderAutoCalFilters();
+  renderAutoCalBody();
 }
 
 function renderAutoCalFilters() {
-    const cats = [
-        { id: 'stream', label: '🎙️ 配信' },
-        { id: 'song', label: '🎵 FULL動画' },
-        { id: 'short', label: '📱 Short' },
-        { id: 'event', label: '🎪 イベント' }
-    ];
-    document.getElementById('calCatFilterList').innerHTML = cats.map(c => {
-        const on = autoCalState.enabledCats.has(c.id);
-        return `<button onclick="toggleAutoCalCat('${c.id}')" class="px-3 py-1 rounded-full font-bold border transition ${on ? 'bg-purple-600 text-white border-purple-600' : 'bg-slate-100 text-slate-400 border-slate-200'}">${c.label}</button>`;
+  const rawItems = getAutoCalYearRawItems(autoCalYear);
+
+  const srcWrap = document.getElementById('autoCalSourceFilters');
+  if (srcWrap) {
+    srcWrap.innerHTML = AUTO_CAL_SOURCES.map(src => {
+      const cnt = rawItems.filter(it => it.source === src.key).length;
+      const hidden = autoCalHiddenSources.has(src.key);
+      const style = !hidden
+        ? `background-color:${src.color}; color:#ffffff; border:1px solid ${src.color};`
+        : `background-color:transparent; color:${src.color}; border:1px solid ${src.color}66; opacity:0.5;`;
+      return `<button type="button" onclick="autoCalToggleSource('${src.key}')" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold transition cursor-pointer" style="${style}">${src.emoji} ${src.label} (${cnt})</button>`;
     }).join('');
+  }
 
-    const tags = [...new Set(appState.data.streams.map(s => s.tag || '雑談'))];
-    document.getElementById('calTagFilterList').innerHTML = tags.map(t => {
-        const on = !autoCalState.disabledTags.has(t);
-        return `<button onclick="toggleAutoCalTag('${escapeHtml(t)}')" class="px-2.5 py-1 rounded-full font-bold border transition ${on ? 'bg-indigo-100 text-indigo-800 border-indigo-200' : 'bg-slate-100 text-slate-400 border-slate-200'}">${escapeHtml(t)}</button>`;
-    }).join('');
-}
+  const tagWrap = document.getElementById('autoCalStreamTagFilters');
+  if (tagWrap) {
+    const tagCounts = {};
+    rawItems.filter(it => it.source === 'stream').forEach(it => {
+      (it.tags || []).forEach(t => {
+        tagCounts[t] = (tagCounts[t] || 0) + 1;
+      });
+    });
+    const tagEntries = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]);
+    tagWrap.innerHTML = tagEntries.length
+      ? tagEntries.map(([tag, cnt]) => {
+          const hidden = autoCalHiddenStreamTags.has(tag);
+          const c = getStreamCatColor(tag);
+          const style = !hidden
+            ? `background-color:${c}; color:#ffffff; border:1px solid ${c};`
+            : `background-color:transparent; color:${c}; border:1px solid ${c}66; opacity:0.5;`;
+          const safeTag = escapeHtml(tag).replace(/'/g, "\\'");
+          return `<button type="button" onclick="autoCalToggleStreamTag('${safeTag}')" class="px-2 py-0.5 rounded-full text-[10px] font-bold transition cursor-pointer" style="${style}">${escapeHtml(tag)} (${cnt})</button>`;
+        }).join('')
+      : '<span class="text-[10px] text-slate-400">配信データなし</span>';
+  }
 
-function toggleAutoCalCat(cat) {
-    if (autoCalState.enabledCats.has(cat)) autoCalState.enabledCats.delete(cat);
-    else autoCalState.enabledCats.add(cat);
-    renderAutoCalendarSection();
-}
-
-function toggleAutoCalTag(tag) {
-    if (autoCalState.disabledTags.has(tag)) autoCalState.disabledTags.delete(tag);
-    else autoCalState.disabledTags.add(tag);
-    renderAutoCalendarSection();
+  const filterBtnText = document.getElementById('autoCalFilterBtnText');
+  if (filterBtnText) {
+    const hiddenCount = autoCalHiddenSources.size + autoCalHiddenStreamTags.size;
+    filterBtnText.textContent = hiddenCount > 0 ? `フィルター (${hiddenCount}件OFF)` : 'フィルター';
+  }
 }
 
 function renderAutoCalBody() {
-    const y = appState.targetYear;
-    const kw = (document.getElementById('calSearchInput')?.value || '').trim().toLowerCase();
-    const allItems = getAutoCalItemsForYear(y).filter(it => {
-        if (!autoCalState.enabledCats.has(it.cat)) return false;
-        if (it.cat === 'stream' && autoCalState.disabledTags.has(it.tag)) return false;
-        if (kw && !it.title.toLowerCase().includes(kw)) return false;
-        return true;
-    });
+  const container = document.getElementById('autoCalBodyContainer');
+  const countBadge = document.getElementById('autoCalCountBadge');
+  if (!container) return;
 
-    const container = document.getElementById('autoCalContainer');
-    if (autoCalState.mode === 'month') {
-        const mItems = allItems.filter(it => getItemMonth(it.date) === autoCalState.month);
-        document.getElementById('calCountBadge').textContent = `${y}年${autoCalState.month}月：${mItems.length}件`;
-        container.innerHTML = buildAutoCalMonthHtml(y, autoCalState.month, mItems);
+  const rawItems = getAutoCalYearRawItems(autoCalYear);
+  const visibleItems = filterAutoCalItems(rawItems);
+
+  window._autoCalItemsByUid = {};
+  window._autoCalItemsByDate = {};
+  visibleItems.forEach(it => {
+    window._autoCalItemsByUid[it.uid] = it;
+    if (!window._autoCalItemsByDate[it.dateKey]) window._autoCalItemsByDate[it.dateKey] = [];
+    window._autoCalItemsByDate[it.dateKey].push(it);
+  });
+  Object.values(window._autoCalItemsByDate).forEach(arr => {
+    arr.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
+  });
+
+  if (autoCalViewMode === 'month') {
+    const monthItems = visibleItems.filter(it => it.month === autoCalMonth);
+    if (countBadge) countBadge.textContent = `${autoCalYear}年${autoCalMonth}月：${monthItems.length}件`;
+    container.innerHTML = buildAutoCalMonthHtml(autoCalYear, autoCalMonth);
+  } else {
+    if (countBadge) countBadge.textContent = `${autoCalYear}年：${visibleItems.length}件`;
+    container.innerHTML = buildAutoCalYearHtml(autoCalYear);
+  }
+}
+
+function buildAutoCalMonthHtml(year, month) {
+  const firstDow = new Date(year, month - 1, 1).getDay();
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const dows = ['日', '月', '火', '水', '木', '金', '土'];
+
+  let html = `<table class="w-full table-fixed border-collapse text-xs">
+    <thead>
+      <tr class="bg-purple-50 text-purple-950 border-b border-purple-100">`;
+  dows.forEach((d, idx) => {
+    const colCls = idx === 0 ? 'text-rose-600' : (idx === 6 ? 'text-sky-600' : '');
+    html += `<th class="py-2 px-1 text-center font-black ${colCls}">${d}</th>`;
+  });
+  html += `</tr></thead><tbody class="divide-y divide-slate-100">`;
+
+  let day = 1;
+  const totalCells = Math.ceil((firstDow + daysInMonth) / 7) * 7;
+  for (let cellIdx = 0; cellIdx < totalCells; cellIdx++) {
+    if (cellIdx % 7 === 0) html += `<tr class="divide-x divide-slate-100">`;
+    const dow = cellIdx % 7;
+
+    if (cellIdx < firstDow || day > daysInMonth) {
+      html += `<td class="cal-hatch h-28 align-top"></td>`;
     } else {
-        document.getElementById('calCountBadge').textContent = `${y}年：${allItems.length}件`;
-        container.innerHTML = buildAutoCalYearHtml(y, allItems);
+      const d = day++;
+      const mm = String(month).padStart(2, '0');
+      const dd = String(d).padStart(2, '0');
+      const dateKey = `${year}-${mm}-${dd}`;
+      const holName = autoCalHolidays[dateKey];
+      const isRed = dow === 0 || !!holName;
+      const isBlue = !isRed && dow === 6;
+      const bgCls = isRed ? 'cal-sun' : (isBlue ? 'cal-sat' : '');
+      const numCls = isRed ? 'text-rose-600' : (isBlue ? 'text-sky-600' : 'text-slate-700');
+      const dayItems = (window._autoCalItemsByDate && window._autoCalItemsByDate[dateKey]) || [];
+
+      html += `<td class="cal-month-cell h-28 p-1.5 align-top transition cursor-pointer ${bgCls}" onclick="openAutoCalDayModal('${dateKey}')">
+        <div class="flex items-start justify-between gap-1 mb-1">
+          <span class="font-black text-xs ${numCls}">${d}</span>
+          ${holName ? `<span class="cal-hol-label text-[9px] font-bold text-rose-500 truncate text-right">${escapeHtml(holName)}</span>` : ''}
+        </div>
+        <div class="space-y-1">
+          ${dayItems.map(it => `
+            <button type="button" onclick="event.stopPropagation(); openAutoCalItemDetail('${it.uid}')" class="cal-item-chip w-full" style="background-color:${it.color}1a; color:${it.color}; border-color:${it.color}44;" title="${escapeHtml(it.title)} (${escapeHtml(it.sub)})">
+              <span class="shrink-0 leading-tight">${it.emoji}</span>
+              <div class="min-w-0 flex-1">
+                <div class="font-bold text-slate-800 leading-snug line-clamp-2">${escapeHtml(it.title)}</div>
+                <div class="text-[9px] opacity-80 truncate">${escapeHtml(it.sub)}</div>
+              </div>
+            </button>
+          `).join('')}
+        </div>
+      </td>`;
     }
+    if (cellIdx % 7 === 6) html += `</tr>`;
+  }
+  html += `</tbody></table>`;
+  return html;
 }
 
-function getCalBadgeStyle(cat) {
-    if (cat === 'event') return { icon: '🎪', cls: 'bg-rose-500/15 text-rose-700 dark:text-rose-200 border-rose-400/40' };
-    if (cat === 'song') return { icon: '🎵', cls: 'bg-purple-500/15 text-purple-800 dark:text-purple-200 border-purple-400/40' };
-    if (cat === 'short') return { icon: '📱', cls: 'bg-sky-500/15 text-sky-800 dark:text-sky-200 border-sky-400/40' };
-    return { icon: '🎙️', cls: 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-200 border-emerald-400/40' };
-}
+function buildAutoCalYearHtml(year) {
+  let html = `<table class="cal-table text-xs border-collapse">
+    <colgroup>
+      <col style="width:38px;" />
+      ${Array.from({ length: 12 }, () => '<col style="width:156px;" />').join('')}
+    </colgroup>
+    <thead>
+      <tr>
+        <th class="cal-sticky-corner py-2 px-1 text-center font-black">日</th>`;
+  for (let m = 1; m <= 12; m++) {
+    html += `<th class="cal-sticky-month py-2 px-2 text-center font-black border-l border-purple-100 cursor-pointer hover:underline" onclick="autoCalSelectMonth(${m}); setAutoCalViewMode('month');" title="${m}月の月間表示へ切替">${m}月</th>`;
+  }
+  html += `</tr></thead><tbody>`;
 
-function buildAutoCalMonthHtml(year, month, items) {
-    const firstDay = new Date(year, month - 1, 1).getDay();
-    const daysInMonth = new Date(year, month, 0).getDate();
-    const weeks = ['日', '月', '火', '水', '木', '金', '土'];
+  for (let d = 1; d <= 31; d++) {
+    const isMilestone = d % 5 === 0;
+    const rowCls = isMilestone ? 'cal-milestone-row' : '';
+    const dayNumCls = isMilestone ? 'font-black text-purple-700' : 'font-bold text-slate-500';
+    html += `<tr class="${rowCls}">
+      <th class="cal-sticky-day py-1.5 px-1 text-center font-mono text-[11px] border-t border-slate-100 ${dayNumCls}">${d}</th>`;
 
-    let html = '<div class="grid grid-cols-7 border-b border-slate-200 bg-purple-50/70 dark:bg-purple-950/40 text-center text-xs font-extrabold">';
-    weeks.forEach((w, idx) => {
-        const c = idx === 0 ? 'text-rose-500' : idx === 6 ? 'text-sky-500' : 'text-slate-600';
-        html += `<div class="py-2.5 ${c}">${w}</div>`;
-    });
-    html += '</div><div class="grid grid-cols-7">';
-
-    const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
-    for (let i = 0; i < totalCells; i++) {
-        const dayNum = i - firstDay + 1;
-        if (dayNum < 1 || dayNum > daysInMonth) {
-            html += '<div class="min-h-[115px] border-r border-b border-slate-100 cal-hatch"></div>';
-            continue;
-        }
-        const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
-        const dow = i % 7;
-        const hol = autoCalState.holidays[dateStr];
-        const bgCls = (dow === 0 || hol) ? 'cal-sun-hol' : (dow === 6 ? 'cal-sat' : '');
-        const dayItems = items.filter(it => it.date === dateStr);
-
-        html += `<div class="min-h-[115px] p-1.5 border-r border-b border-slate-100 flex flex-col gap-1 ${bgCls}">
-            <div class="flex items-center justify-between text-xs font-extrabold px-1">
-                <span class="${dow === 0 || hol ? 'text-rose-500' : dow === 6 ? 'text-sky-500' : ''}">${dayNum}</span>
-                ${hol ? `<span class="text-[10px] text-rose-500 truncate max-w-[85px]">${escapeHtml(hol)}</span>` : ''}
-            </div>
-            <div class="space-y-1">
-                ${dayItems.map(it => {
-                    const st = getCalBadgeStyle(it.cat);
-                    return `<div onclick="openEditModal('${it.cat === 'stream' ? 'streams' : it.cat === 'song' ? 'songs' : it.cat === 'short' ? 'shorts' : 'events'}', ${it.idx})" title="${escapeHtml(it.title)}" class="p-1.5 rounded-lg border text-[11px] leading-snug cursor-pointer hover:brightness-95 transition ${st.cls}">
-                        <div class="font-bold line-clamp-2">${st.icon} ${escapeHtml(it.title)}</div>
-                        <div class="text-[10px] opacity-75 truncate mt-0.5">${escapeHtml(it.sub)}</div>
-                    </div>`;
-                }).join('')}
-            </div>
-        </div>`;
-    }
-    html += '</div>';
-    return html;
-}
-
-function buildAutoCalYearHtml(year, items) {
-    let html = '<div class="cal-year-wrap"><table class="cal-year-table"><colgroup><col style="width:38px">';
-    for (let m = 1; m <= 12; m++) html += '<col style="width:156px">';
-    html += '</colgroup><thead><tr><th class="cal-sticky-corner py-2 text-xs font-extrabold text-center">日</th>';
     for (let m = 1; m <= 12; m++) {
-        html += `<th onclick="calSelectMonth(${m})" class="cal-sticky-month py-2 text-xs font-extrabold text-center cursor-pointer hover:underline">${m}月</th>`;
-    }
-    html += '</tr></thead><tbody>';
+      const dateObj = new Date(year, m - 1, d);
+      const isValid = dateObj.getFullYear() === year && dateObj.getMonth() === m - 1 && dateObj.getDate() === d;
+      if (!isValid) {
+        html += `<td class="cal-hatch border-t border-l border-slate-100"></td>`;
+        continue;
+      }
 
-    for (let d = 1; d <= 31; d++) {
-        html += `<tr><th class="cal-sticky-day py-1.5 text-xs font-bold text-center">${d}</th>`;
-        for (let m = 1; m <= 12; m++) {
-            const dt = new Date(year, m - 1, d);
-            const valid = dt.getFullYear() === year && dt.getMonth() === m - 1 && dt.getDate() === d;
-            if (!valid) {
-                html += '<td class="cal-year-cell cal-hatch"></td>';
-                continue;
-            }
-            const dateStr = `${year}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-            const dow = dt.getDay();
-            const hol = autoCalState.holidays[dateStr];
-            const bgCls = (dow === 0 || hol) ? 'cal-sun-hol' : (dow === 6 ? 'cal-sat' : '');
-            const dayItems = items.filter(it => it.date === dateStr);
+      const mm = String(m).padStart(2, '0');
+      const dd = String(d).padStart(2, '0');
+      const dateKey = `${year}-${mm}-${dd}`;
+      const dow = dateObj.getDay();
+      const holName = autoCalHolidays[dateKey];
+      const isRed = dow === 0 || !!holName;
+      const isBlue = !isRed && dow === 6;
+      const bgCls = isRed ? 'cal-sun' : (isBlue ? 'cal-sat' : '');
+      const dayItems = (window._autoCalItemsByDate && window._autoCalItemsByDate[dateKey]) || [];
 
-            html += `<td class="cal-year-cell ${bgCls}">
-                ${hol ? `<div class="text-[9px] text-rose-500 font-bold text-right truncate">${escapeHtml(hol)}</div>` : ''}
-                <div class="space-y-1">
-                    ${dayItems.map(it => {
-                        const st = getCalBadgeStyle(it.cat);
-                        return `<div onclick="openEditModal('${it.cat === 'stream' ? 'streams' : it.cat === 'song' ? 'songs' : it.cat === 'short' ? 'shorts' : 'events'}', ${it.idx})" title="${escapeHtml(it.title)}" class="px-1.5 py-1 rounded border text-[10px] leading-tight cursor-pointer hover:brightness-95 ${st.cls}">
-                            <div class="cal-clamp-2 font-bold">${st.icon} ${escapeHtml(it.title)}</div>
-                        </div>`;
-                    }).join('')}
-                </div>
-            </td>`;
-        }
-        html += '</tr>';
+      html += `<td class="cal-cell-valid border-t border-l border-slate-100 p-1 align-top cursor-pointer ${bgCls}" onclick="openAutoCalDayModal('${dateKey}')">
+        ${holName ? `<div class="cal-hol-label text-[9px] font-bold text-rose-500 text-right truncate mb-0.5">${escapeHtml(holName)}</div>` : ''}
+        <div class="space-y-1">
+          ${dayItems.map(it => `
+            <button type="button" onclick="event.stopPropagation(); openAutoCalItemDetail('${it.uid}')" class="cal-item-chip w-full" style="background-color:${it.color}1a; color:${it.color}; border-color:${it.color}44;" title="${escapeHtml(it.title)} (${escapeHtml(it.sub)})">
+              <span class="shrink-0 leading-tight">${it.emoji}</span>
+              <span class="cal-title-ellipsis font-bold text-slate-800 flex-1">${escapeHtml(it.title)}</span>
+            </button>
+          `).join('')}
+        </div>
+      </td>`;
     }
-    html += '</tbody></table></div>';
-    return html;
+    html += `</tr>`;
+  }
+  html += `</tbody></table>`;
+  return html;
 }
+
+function openAutoCalItemDetail(uid) {
+  const it = window._autoCalItemsByUid && window._autoCalItemsByUid[uid];
+  if (!it) return;
+  if (it.source === 'stream') {
+    showStreamDetailModal(`🎙️ ${it.raw.dateStr} 配信詳細`, [it.raw]);
+  } else if (it.source === 'full') {
+    showVideoDetailModal(`🎬 ${it.raw.dateStr} Full動画詳細`, [it.raw], 'full');
+  } else if (it.source === 'short') {
+    showVideoDetailModal(`📱 ${it.raw.dateStr} Short動画詳細`, [it.raw], 'short');
+  } else if (it.source === 'event') {
+    showEventDetailModal(`🎪 ${it.raw.dateStr} イベント詳細`, [it.raw]);
+  }
+}
+
+function openAutoCalDayModal(dateKey) {
+  const items = (window._autoCalItemsByDate && window._autoCalItemsByDate[dateKey]) || [];
+  const [y, m, d] = dateKey.split('-').map(Number);
+  const dows = ['日', '月', '火', '水', '木', '金', '土'];
+  const dowStr = dows[new Date(y, m - 1, d).getDay()];
+  const holName = autoCalHolidays[dateKey];
+  const titleStr = `📅 ${y}年${m}月${d}日 (${dowStr})${holName ? ` · ${holName}` : ''}`;
+
+  const html = items.length
+    ? `<div class="space-y-2">
+        ${items.map(it => `
+          <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-50/80 border border-slate-100">
+            <div class="flex items-start gap-2 min-w-0">
+              <span class="text-base shrink-0">${it.emoji}</span>
+              <div class="min-w-0">
+                <div class="font-bold text-slate-800 break-words">${escapeHtml(it.title)}</div>
+                <div class="mt-0.5 flex flex-wrap items-center gap-1.5">
+                  ${renderColoredBadge(it.sub, it.color)}
+                </div>
+              </div>
+            </div>
+            <button type="button" onclick="closeDetailModal(); openEditModal('${it.source}','${it.uid}')" class="px-2.5 py-1 rounded-lg border border-purple-200 text-[11px] font-bold text-purple-700 hover:bg-purple-50 shrink-0 cursor-pointer">✏️ 編集</button>
+          </div>
+        `).join('')}
+      </div>`
+    : '<div class="py-8 text-center text-slate-400">この日の活動データはありません</div>';
+
+  openDetailModal(titleStr, `${items.length}件`, html);
+}
+

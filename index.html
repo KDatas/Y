@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<script>
+    <script>
   // URLに ?exclude=1 が付いていたら、このブラウザを除外対象として記憶する
   if (location.search.includes('exclude=1')) {
     localStorage.setItem('ga_exclude', 'true');
@@ -17,415 +17,797 @@
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-</script> 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>雪見 活動レポート ダッシュボード</title>
-    <meta name="description" content="雪見 活動レポート ダッシュボード - 配信・動画・イベント・歌枠セトリ・活動カレンダー">
-    <meta property="og:title" content="雪見 活動レポート ダッシュボード">
-    <meta property="og:description" content="配信回数・配信時間・動画投稿・イベント・歌枠セトリの年間分析ダッシュボード">
-    <meta property="og:type" content="website">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💜</text></svg>">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <link rel="stylesheet" href="./css/style.css">
+</script>  
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>雪見 活動レポート ダッシュボード</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- SheetJS (Excel / CSV 読み込み用) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/style.css" />
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen antialiased pb-8">
 
-    <!-- ヘッダー＆ハイライトサマリー -->
-    <header class="bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-800 text-white pt-6 pb-20 px-4 md:px-8 shadow-lg">
-        <div class="max-w-7xl mx-auto">
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <span class="inline-block text-[11px] font-bold tracking-wider uppercase bg-white/15 px-3 py-1 rounded-full mb-1.5">💜 YUKIMI ACTIVITY ANALYTICS</span>
-                    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight"><span id="headerYearLabel">2026</span>年 活動レポート</h1>
-                </div>
-                <div class="flex flex-wrap items-center gap-2">
-                    <select id="yearSelect" onchange="changeTargetYear(this.value)" class="bg-white/15 hover:bg-white/25 text-white text-xs font-bold px-3 py-2 rounded-full border border-white/20 outline-none cursor-pointer">
-                        <option value="2026" class="text-slate-900">対象：2026年</option>
-                        <option value="2025" class="text-slate-900">対象：2025年</option>
-                        <option value="2024" class="text-slate-900">対象：2024年</option>
-                        <option value="2023" class="text-slate-900">対象：2023年</option>
-                        <option value="2022" class="text-slate-900">対象：2022年</option>
-                    </select>
-                    <button onclick="exportStateJson()" class="bg-white/15 hover:bg-white/25 text-white text-xs font-bold px-3.5 py-2 rounded-full border border-white/20 transition">💾 JSON出力</button>
-                    <button onclick="toggleImporterPanel()" class="bg-fuchsia-500 hover:bg-fuchsia-400 text-white text-xs font-bold px-4 py-2 rounded-full shadow transition">📁 Excel / CSV / JSON読込</button>
-                    <button id="darkModeBtn" onclick="toggleDarkMode()" class="bg-white/15 hover:bg-white/25 text-white text-xs font-bold px-3.5 py-2 rounded-full border border-white/20 transition">🌙 ダーク</button>
-                </div>
-            </div>
-
-            <!-- インポーターパネル -->
-            <div id="importerPanel" class="hidden mt-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 text-xs">
-                <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
-                    <div>
-                        <div class="font-bold text-sm">📂 活動データの読み込み（Excel .xlsx / CSV / バックアップJSON）</div>
-                        <div class="text-white/75 mt-0.5">複数ファイルをまとめて選択できます。シート名・ファイル名から Streaming / Song / Short / Ivent / Setlist を自動判別します。</div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <input type="file" id="multiFileInput" multiple accept=".xlsx,.xls,.csv,.json" class="hidden" onchange="handleFilesUpload(event)">
-                        <button onclick="document.getElementById('multiFileInput').click()" class="bg-white text-purple-900 hover:bg-purple-50 font-bold px-4 py-2 rounded-full shadow transition">ファイルを選択</button>
-                        <button onclick="reloadHostedDefaultData()" class="bg-purple-200/20 hover:bg-purple-200/30 text-white font-bold px-3 py-2 rounded-full border border-white/20 transition" title="リポジトリ内の data/default_data.json を再読込">🔄 公開データ再読込</button>
-                        <button onclick="resetAllData()" class="bg-rose-500/80 hover:bg-rose-500 text-white font-bold px-3 py-2 rounded-full transition">初期化</button>
-                    </div>
-                </div>
-                <div id="loadedStatusBadges" class="flex flex-wrap gap-2"></div>
-            </div>
+  <!-- ヘッダー -->
+  <header class="hero-gradient text-white pb-10 pt-4 px-3 sm:px-5 lg:px-6">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2.5">
+        <div>
+          <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-white/10 backdrop-blur-sm text-[11px] font-semibold tracking-wide text-purple-100 mb-1.5">
+            <span>💜 YUKIMI ACTIVITY ANALYTICS</span>
+          </div>
+          <h1 id="reportTitle" class="text-xl sm:text-2xl font-black tracking-tight">2026年 活動レポート</h1>
         </div>
-    </header>
 
-    <!-- メインコンテンツ -->
-    <main class="max-w-7xl w-full mx-auto px-4 md:px-8 -mt-14 pb-12 flex-1 space-y-5">
+        <div class="flex flex-wrap items-center gap-2">
+          <select id="yearFilterSelect" onchange="onYearFilterChange()" class="bg-white/15 hover:bg-white/20 text-white border border-white/25 rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-purple-300 cursor-pointer">
+            <option value="2026" class="text-slate-800">対象：2026年</option>
+          </select>
 
-        <!-- ハイライトカード5枚 -->
-        <section id="highlightCardsSection" class="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
-            <div class="card p-4">
-                <div class="flex items-center justify-between text-xs font-bold text-purple-600 mb-1"><span>配信回数</span><span>🎙️</span></div>
-                <div class="text-2xl md:text-3xl font-extrabold"><span id="kpiStreamCount">0</span><span class="text-xs font-bold ml-1 text-slate-400">回</span></div>
-                <div id="kpiStreamSub" class="text-[11px] text-slate-400 mt-1">月平均 0.0回</div>
-            </div>
-            <div class="card p-4">
-                <div class="flex items-center justify-between text-xs font-bold text-indigo-600 mb-1"><span>総配信時間</span><span>⏱️</span></div>
-                <div class="text-2xl md:text-3xl font-extrabold"><span id="kpiStreamHours">0.0</span><span class="text-xs font-bold ml-1 text-slate-400">時間</span></div>
-                <div id="kpiHoursSub" class="text-[11px] text-slate-400 mt-1">月平均 0.0h</div>
-            </div>
-            <div class="card p-4">
-                <div class="flex items-center justify-between text-xs font-bold text-violet-600 mb-1">
-                    <span>動画投稿 (FULL)</span>
-                    <span id="kpiShortBadge" class="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">Short 0本</span>
-                </div>
-                <div class="text-2xl md:text-3xl font-extrabold"><span id="kpiVideoCount">0</span><span class="text-xs font-bold ml-1 text-slate-400">本</span></div>
-                <div id="kpiVideoSub" class="text-[11px] text-slate-400 mt-1">月平均 0.0本</div>
-            </div>
-            <div class="card p-4">
-                <div class="flex items-center justify-between text-xs font-bold text-amber-600 mb-1">
-                    <span>歌枠回数</span>
-                    <span id="kpiTotalSongsBadge" class="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">計0曲</span>
-                </div>
-                <div class="text-2xl md:text-3xl font-extrabold"><span id="kpiSingStreamCount">0</span><span class="text-xs font-bold ml-1 text-slate-400">回</span></div>
-                <div id="kpiSingSub" class="text-[11px] text-slate-400 mt-1">月平均 0.0回</div>
-            </div>
-            <div class="card p-4 col-span-2 md:col-span-1">
-                <div class="flex items-center justify-between text-xs font-bold text-rose-600 mb-1"><span>イベント回数</span><span>🎪</span></div>
-                <div class="text-2xl md:text-3xl font-extrabold"><span id="kpiEventCount">0</span><span class="text-xs font-bold ml-1 text-slate-400">回</span></div>
-                <div id="kpiEventBreakdown" class="text-[11px] text-slate-400 mt-1 leading-snug">内訳 : -</div>
-            </div>
-        </section>
-
-        <!-- ナビゲーションバー -->
-        <nav class="card px-3 py-2 flex flex-wrap items-center justify-between gap-2 sticky top-2 z-30">
-            <div class="flex flex-wrap items-center gap-1">
-                <button class="nav-tab active" data-tab="overview" onclick="switchTab('overview')">📊 年間推移</button>
-                <button class="nav-tab" data-tab="calendar" onclick="switchTab('calendar')">📅 カレンダー</button>
-                <button class="nav-tab" data-tab="event" onclick="switchTab('event')">🎪 イベント</button>
-                <button class="nav-tab" data-tab="music" onclick="switchTab('music')">🎵 動画・ショート</button>
-                <button class="nav-tab" data-tab="streaming" onclick="switchTab('streaming')">🎙️ 雑談・配信</button>
-                <button class="nav-tab" data-tab="singing" onclick="switchTab('singing')">📝 歌枠＆セトリ</button>
-                <button class="nav-tab" data-tab="archive" onclick="switchTab('archive')">⚖️ 比較</button>
-            </div>
-            <div class="flex items-center gap-2 ml-auto">
-                <button id="highlightToggleBtn" onclick="toggleHighlightCards()" title="ハイライトカードの表示／非表示を切り替え" class="text-xs font-bold px-3 py-1.5 rounded-full bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 transition">📌 ハイライト ▲</button>
-                <div class="relative group">
-                    <button class="text-xs font-bold px-3 py-1.5 rounded-full text-slate-500 hover:bg-slate-100 transition">❓ 操作ヒント</button>
-                    <div class="hidden group-hover:block absolute right-0 top-full mt-2 w-72 card p-3.5 text-xs text-slate-600 shadow-xl z-50 space-y-1.5">
-                        <div class="font-bold text-purple-700">💡 ダッシュボード操作ガイド</div>
-                        <div>・<b>グラフの凡例</b>クリックで項目の表示/非表示を切替</div>
-                        <div>・<b>棒グラフや項目</b>クリックでその月の詳細リストを表示</div>
-                        <div>・詳細リスト内の <b>✏️</b> からタイトルや日付を直接編集可能</div>
-                    </div>
-                </div>
-            </div>
-        </nav>
-
-        <!-- 1. 年間推移タブ -->
-        <section id="tab-overview" class="tab-panel space-y-5">
-            <div class="card p-4 flex flex-wrap items-center justify-between gap-3">
-                <h2 class="font-bold text-base">📈 月別パフォーマンス推移</h2>
-                <div class="inline-flex bg-purple-50 p-1 rounded-full border border-purple-100">
-                    <button id="btnModeMonthly" onclick="setOverviewMode('monthly')" class="px-3.5 py-1 rounded-full text-xs font-bold bg-purple-600 text-white transition">月別で表示</button>
-                    <button id="btnModeCumulative" onclick="setOverviewMode('cumulative')" class="px-3.5 py-1 rounded-full text-xs font-bold text-purple-700 transition">年間累計で表示</button>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div class="card p-5">
-                    <h3 class="font-bold text-sm mb-3">⏱️ 月別 配信時間 (h)</h3>
-                    <div class="h-64"><canvas id="chartOverviewHours"></canvas></div>
-                </div>
-                <div class="card p-5">
-                    <h3 class="font-bold text-sm mb-3">🎙️ 月別 配信回数 (回)</h3>
-                    <div class="h-64"><canvas id="chartOverviewStreams"></canvas></div>
-                </div>
-                <div class="card p-5">
-                    <h3 class="font-bold text-sm mb-3">🎵 月別 動画投稿数 (FULL / Short)</h3>
-                    <div class="h-64"><canvas id="chartOverviewVideos"></canvas></div>
-                </div>
-                <div class="card p-5">
-                    <h3 class="font-bold text-sm mb-3">🎪 月別 イベント出演・開催数</h3>
-                    <div class="h-64"><canvas id="chartOverviewEvents"></canvas></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 2. カレンダータブ -->
-        <section id="tab-calendar" class="tab-panel hidden space-y-4">
-            <div class="card p-3.5 flex flex-wrap items-center justify-between gap-2">
-                <div class="flex flex-wrap items-center gap-2">
-                    <h2 class="font-bold text-sm md:text-base flex items-center gap-1.5">📅 活動カレンダー</h2>
-                    <div class="inline-flex items-center bg-purple-50 rounded-full px-1 py-0.5 border border-purple-100">
-                        <button onclick="calChangeYear(-1)" class="px-2 py-0.5 text-purple-700 hover:bg-purple-200/60 rounded-full text-xs font-bold">◀</button>
-                        <span id="calYearLabel" class="px-2 text-xs font-extrabold text-purple-900">2026年</span>
-                        <button onclick="calChangeYear(1)" class="px-2 py-0.5 text-purple-700 hover:bg-purple-200/60 rounded-full text-xs font-bold">▶</button>
-                    </div>
-                    <div class="inline-flex bg-purple-50 p-0.5 rounded-full border border-purple-100">
-                        <button id="btnCalModeMonth" onclick="setAutoCalMode('month')" class="px-3 py-1 rounded-full text-xs font-bold bg-purple-600 text-white transition">月間表示</button>
-                        <button id="btnCalModeYear" onclick="setAutoCalMode('year')" class="px-3 py-1 rounded-full text-xs font-bold text-purple-700 transition">年間表示</button>
-                    </div>
-                    <!-- 統合月選択ピルバー -->
-                    <div id="calMonthNavWrap" class="inline-flex items-center bg-purple-50/80 border border-purple-100 rounded-full px-1 py-0.5 gap-0.5">
-                        <button onclick="calChangeMonth(-1)" class="px-1.5 py-0.5 text-purple-700 hover:bg-purple-200/60 rounded-full text-[11px] font-bold">◀</button>
-                        <div id="calMonthButtons" class="flex items-center gap-0.5"></div>
-                        <button onclick="calChangeMonth(1)" class="px-1.5 py-0.5 text-purple-700 hover:bg-purple-200/60 rounded-full text-[11px] font-bold">▶</button>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2 ml-auto">
-                    <span id="calCountBadge" class="text-xs font-bold bg-purple-100 text-purple-700 px-3 py-1 rounded-full">0件</span>
-                    <button id="btnCalFilterToggle" onclick="toggleAutoCalFilterPanel()" class="text-xs font-bold px-3 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 transition">🔍 フィルター ▼</button>
-                </div>
-            </div>
-
-            <!-- 折りたたみフィルターパネル -->
-            <div id="calFilterPanel" class="hidden card p-4 space-y-3 text-xs">
-                <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-100">
-                    <div class="flex flex-wrap items-center gap-1.5">
-                        <span class="font-bold text-slate-500 mr-1">クイック切替：</span>
-                        <button onclick="setAutoCalPreset('all')" class="px-2.5 py-1 rounded-full bg-purple-100 text-purple-700 font-bold hover:bg-purple-200">すべてON</button>
-                        <button onclick="setAutoCalPreset('none')" class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 font-bold hover:bg-slate-200">すべてOFF</button>
-                        <button onclick="setAutoCalPreset('no_chat')" class="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 font-bold hover:bg-indigo-100">雑談以外</button>
-                        <button onclick="setAutoCalPreset('media_event')" class="px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 font-bold hover:bg-rose-100">動画・イベントのみ</button>
-                    </div>
-                    <input type="text" id="calSearchInput" oninput="renderAutoCalBody()" placeholder="🔍 タイトル検索..." class="border border-slate-200 rounded-full px-3 py-1 text-xs outline-none focus:border-purple-400">
-                </div>
-                <div>
-                    <div class="font-bold text-slate-500 mb-1.5">種別フィルター</div>
-                    <div id="calCatFilterList" class="flex flex-wrap gap-1.5"></div>
-                </div>
-                <div>
-                    <div class="font-bold text-slate-500 mb-1.5">配信タグ別フィルター</div>
-                    <div id="calTagFilterList" class="flex flex-wrap gap-1.5"></div>
-                </div>
-            </div>
-
-            <!-- カレンダー本体 -->
-            <div id="autoCalContainer" class="card overflow-hidden"></div>
-        </section>
-
-        <!-- 3. イベントタブ -->
-        <section id="tab-event" class="tab-panel hidden space-y-5">
-            <div class="card p-5">
-                <h2 class="font-bold text-base mb-3">🎪 月別 イベント種別内訳</h2>
-                <div class="h-72"><canvas id="chartEventMonthly"></canvas></div>
-            </div>
-            <div class="card p-5">
-                <h3 class="font-bold text-sm mb-3">📋 イベント一覧</h3>
-                <div id="eventListContainer" class="space-y-2"></div>
-            </div>
-        </section>
-
-        <!-- 4. 動画・ショートタブ -->
-        <section id="tab-music" class="tab-panel hidden space-y-5">
-            <div class="card p-4 flex flex-wrap items-center justify-between gap-3">
-                <h2 class="font-bold text-base">🎵 動画・ショート投稿分析</h2>
-                <label class="flex items-center gap-2 text-xs font-bold cursor-pointer">
-                    <input type="checkbox" id="chkExcludeXShort" checked onchange="renderAll()" class="accent-purple-600 w-4 h-4">
-                    X限定ショートを除外する
-                </label>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div class="card p-5">
-                    <h3 class="font-bold text-sm mb-3">🎬 FULL動画 月別投稿数</h3>
-                    <div class="h-64"><canvas id="chartSongMonthly"></canvas></div>
-                </div>
-                <div class="card p-5">
-                    <h3 class="font-bold text-sm mb-3">📱 Short動画 月別投稿数</h3>
-                    <div class="h-64"><canvas id="chartShortMonthly"></canvas></div>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div class="card p-5">
-                    <h3 class="font-bold text-sm mb-3">🎼 FULL動画 リスト</h3>
-                    <div id="songListContainer" class="space-y-2 max-h-96 overflow-y-auto pr-1"></div>
-                </div>
-                <div class="card p-5">
-                    <h3 class="font-bold text-sm mb-3">📱 Short動画 リスト</h3>
-                    <div id="shortListContainer" class="space-y-2 max-h-96 overflow-y-auto pr-1"></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 5. 雑談・配信タブ -->
-        <section id="tab-streaming" class="tab-panel hidden space-y-5">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div class="card p-5">
-                    <h3 class="font-bold text-sm mb-3">🏷️ 配信タグ別割合</h3>
-                    <div class="h-64"><canvas id="chartStreamTags"></canvas></div>
-                </div>
-                <div class="card p-5">
-                    <h3 class="font-bold text-sm mb-3">📅 曜日別 配信傾向</h3>
-                    <div class="h-64"><canvas id="chartStreamWeekday"></canvas></div>
-                </div>
-            </div>
-            <div class="card p-5">
-                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-                    <h3 class="font-bold text-sm">🎙️ 配信アーカイブ一覧</h3>
-                    <select id="streamTagFilter" onchange="renderStreamingTab()" class="text-xs font-bold border border-slate-200 rounded-full px-3 py-1.5 outline-none">
-                        <option value="ALL">すべてのタグ</option>
-                    </select>
-                </div>
-                <div id="streamListContainer" class="space-y-2 max-h-[480px] overflow-y-auto pr-1"></div>
-            </div>
-        </section>
-
-        <!-- 6. 歌枠＆セトリタブ -->
-        <section id="tab-singing" class="tab-panel hidden space-y-5">
-            <div class="card p-5">
-                <h2 class="font-bold text-base mb-3">🎤 月別 歌唱曲数（種別内訳）</h2>
-                <div class="h-64"><canvas id="chartSingingMonthly"></canvas></div>
-            </div>
-
-            <div class="card p-5 space-y-4">
-                <div class="flex flex-wrap items-center justify-between gap-2">
-                    <h3 class="font-bold text-base">🏆 レパートリー＆最多歌唱ランキング</h3>
-                    <div class="inline-flex flex-wrap bg-purple-50 p-1 rounded-full border border-purple-100 gap-1">
-                        <button id="btnSingScopeStream" onclick="setSingRankingScope('stream')" class="px-3 py-1 rounded-full text-xs font-bold bg-purple-600 text-white transition">🎙️ 歌枠（カラオケ含む）</button>
-                        <button id="btnSingScopeLiveAll" onclick="setSingRankingScope('live_all')" class="px-3 py-1 rounded-full text-xs font-bold text-purple-700 transition">🎸 LIVE（すべて）</button>
-                        <button id="btnSingScopeLiveSolo" onclick="setSingRankingScope('live_solo')" class="px-3 py-1 rounded-full text-xs font-bold text-purple-700 transition">🎸 LIVE (solo)</button>
-                        <button id="btnSingScopeLiveOther" onclick="setSingRankingScope('live_other')" class="px-3 py-1 rounded-full text-xs font-bold text-purple-700 transition">🎸 LIVE (Comp・Guest)</button>
-                        <button id="btnSingScopeAll" onclick="setSingRankingScope('all')" class="px-3 py-1 rounded-full text-xs font-bold text-purple-700 transition">🎵 全種別</button>
-                    </div>
-                </div>
-                <div id="singStatsCards" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
-                <div id="singTopRankingList" class="grid grid-cols-1 md:grid-cols-2 gap-2.5"></div>
-            </div>
-
-            <div class="card p-5 space-y-3">
-                <div class="flex flex-wrap items-center justify-between gap-2">
-                    <h3 class="font-bold text-base">📜 セットリスト検索・一覧</h3>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <select id="setlistTypeFilter" onchange="renderSetlistCards()" class="text-xs font-bold border border-slate-200 rounded-full px-3 py-1.5 outline-none">
-                            <option value="ALL">すべての種別</option>
-                            <option value="歌枠">歌枠</option>
-                            <option value="カラオケ">カラオケ</option>
-                            <option value="LIVE (solo)">LIVE (solo)</option>
-                            <option value="LIVE (Comp)">LIVE (Comp)</option>
-                            <option value="LIVE (Guest)">LIVE (Guest)</option>
-                        </select>
-                        <button id="btnSetlistUnique" onclick="toggleSetlistUnique()" class="text-xs font-bold px-3 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 transition">重複を除く：OFF</button>
-                        <button id="btnSetlistSort" onclick="toggleSetlistSort()" class="text-xs font-bold px-3 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 transition">日付：降順 ↓</button>
-                        <input type="text" id="setlistSearchInput" oninput="renderSetlistCards()" placeholder="🔍 曲名・アーティスト検索" class="text-xs border border-slate-200 rounded-full px-3 py-1.5 outline-none focus:border-purple-400">
-                    </div>
-                </div>
-                <div id="setlistCardsContainer" class="space-y-2 max-h-[520px] overflow-y-auto pr-1"></div>
-            </div>
-        </section>
-
-        <!-- 7. 比較タブ -->
-        <section id="tab-archive" class="tab-panel hidden space-y-5">
-            <div class="card p-4 flex flex-wrap items-center justify-between gap-3">
-                <h2 class="font-bold text-base">⚖️ 年度間パフォーマンス比較</h2>
-                <div class="flex flex-wrap items-center gap-2 text-xs font-bold">
-                    <select id="compYearA" onchange="renderArchiveTab()" class="border border-purple-200 bg-purple-50 text-purple-900 rounded-full px-3 py-1.5 outline-none"></select>
-                    <span class="text-slate-400">VS</span>
-                    <select id="compYearB" onchange="renderArchiveTab()" class="border border-slate-200 rounded-full px-3 py-1.5 outline-none"></select>
-                    <select id="compMetricSelect" onchange="renderArchiveTab()" class="border border-slate-200 rounded-full px-3 py-1.5 outline-none">
-                        <option value="hours">配信時間 (h)</option>
-                        <option value="streams">配信回数 (回)</option>
-                        <option value="videos">FULL動画数 (本)</option>
-                        <option value="shorts">Short動画数 (本)</option>
-                        <option value="songs">歌唱曲数 (曲)</option>
-                        <option value="events">イベント回数 (回)</option>
-                    </select>
-                </div>
-            </div>
-            <div id="compSummaryGrid" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div class="card p-5">
-                    <h3 class="font-bold text-sm mb-3">📊 月別推移比較</h3>
-                    <div class="h-64"><canvas id="chartCompMonthly"></canvas></div>
-                </div>
-                <div class="card p-5">
-                    <h3 class="font-bold text-sm mb-3">🕸️ 活動バランス比較（6軸レーダー）</h3>
-                    <div class="h-64"><canvas id="chartCompRadar"></canvas></div>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- 詳細一覧モーダル -->
-    <div id="detailModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4" onclick="if(event.target===this) closeModal('detailModal')">
-        <div class="card w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
-            <div class="p-4 border-b border-slate-100 flex items-center justify-between gap-2">
-                <div>
-                    <h3 id="detailModalTitle" class="font-extrabold text-base">詳細一覧</h3>
-                    <p id="detailModalSub" class="text-xs text-slate-400 mt-0.5"></p>
-                </div>
-                <button onclick="closeModal('detailModal')" class="w-8 h-8 rounded-full hover:bg-slate-100 font-bold text-slate-500">✕</button>
-            </div>
-            <div id="detailModalSortBar" class="hidden px-4 py-2 bg-slate-50 border-b border-slate-100 flex items-center gap-2 text-xs">
-                <span class="font-bold text-slate-500">並び順：</span>
-                <button id="btnUniqueSortCount" onclick="setUniqueModalSort('count')" class="px-2.5 py-1 rounded-full font-bold bg-purple-600 text-white">回数順</button>
-                <button id="btnUniqueSortDesc" onclick="setUniqueModalSort('date_desc')" class="px-2.5 py-1 rounded-full font-bold bg-white border border-slate-200 text-slate-600">最新歌唱日 ↓</button>
-                <button id="btnUniqueSortAsc" onclick="setUniqueModalSort('date_asc')" class="px-2.5 py-1 rounded-full font-bold bg-white border border-slate-200 text-slate-600">最新歌唱日 ↑</button>
-            </div>
-            <div id="detailModalBody" class="p-4 overflow-y-auto space-y-2 flex-1 text-xs"></div>
+          <button id="themeToggleBtn" onclick="toggleThemeMode()" class="inline-flex items-center gap-1 bg-white/5 hover:bg-white/15 border border-white/15 text-purple-200/80 hover:text-white px-2 py-1.5 rounded-xl text-[11px] font-semibold transition cursor-pointer" title="ライトモード／ダークモードを切り替え">
+            <span id="themeToggleIcon">🌙</span><span id="themeToggleText">ダーク</span>
+          </button>
         </div>
+      </div>
+
+
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main class="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6 -mt-7 space-y-3">
+
+    <!-- 上部KPIカード（5列コンパクト・開閉可能） -->
+    <section id="kpiSection" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
+      <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+        <div class="flex items-center justify-between text-[11px] font-bold text-purple-600">
+          <span>配信回数</span><span>🎙️</span>
+        </div>
+        <div class="mt-0.5 flex items-baseline gap-1">
+          <span id="kpiStreams" class="text-xl sm:text-2xl font-black text-slate-900">0</span>
+          <span class="text-[11px] font-bold text-slate-500">回</span>
+        </div>
+        <div id="kpiStreamsSub" class="text-[10px] text-slate-400 mt-0.5 truncate">月平均 0.0回</div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+        <div class="flex items-center justify-between text-[11px] font-bold text-purple-600">
+          <span>総配信時間</span><span>⏱️</span>
+        </div>
+        <div class="mt-0.5 flex items-baseline gap-1">
+          <span id="kpiHours" class="text-xl sm:text-2xl font-black text-slate-900">0.0</span>
+          <span class="text-[11px] font-bold text-slate-500">時間</span>
+        </div>
+        <div id="kpiHoursSub" class="text-[10px] text-slate-400 mt-0.5 truncate" title="">月平均 0.0h</div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+        <div class="flex items-center justify-between text-[11px] font-bold text-fuchsia-600">
+          <span>動画投稿 (FULL)</span>
+          <span id="kpiShortBadge" class="px-1.5 py-0.5 rounded-full bg-fuchsia-50 text-fuchsia-700 text-[10px] font-bold">Short 0本</span>
+        </div>
+        <div class="mt-0.5 flex items-baseline gap-1">
+          <span id="kpiFullVideos" class="text-xl sm:text-2xl font-black text-slate-900">0</span>
+          <span class="text-[11px] font-bold text-slate-500">本</span>
+        </div>
+        <div id="kpiFullSub" class="text-[10px] text-slate-400 mt-0.5 truncate">月平均 0.0本</div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+        <div class="flex items-center justify-between text-[11px] font-bold text-pink-600">
+          <span>歌枠回数</span>
+          <span id="kpiSongsBadge" class="px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-bold">計0曲</span>
+        </div>
+        <div class="mt-0.5 flex items-baseline gap-1">
+          <span id="kpiSinging" class="text-xl sm:text-2xl font-black text-slate-900">0</span>
+          <span class="text-[11px] font-bold text-slate-500">回</span>
+        </div>
+        <div id="kpiSingingSub" class="text-[10px] text-slate-400 mt-0.5 truncate">月平均 0.0回</div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80 col-span-2 sm:col-span-1">
+        <div class="flex items-center justify-between text-[11px] font-bold text-rose-600">
+          <span>イベント回数</span><span>🎪</span>
+        </div>
+        <div class="mt-0.5 flex items-baseline gap-1">
+          <span id="kpiEvents" class="text-xl sm:text-2xl font-black text-slate-900">0</span>
+          <span class="text-[11px] font-bold text-slate-500">回</span>
+        </div>
+        <div id="kpiEventsBreakdown" class="text-[10px] text-slate-500 mt-0.5 leading-snug break-words" title="">内訳：-</div>
+      </div>
+    </section>
+
+    <!-- タブナビゲーション（全7タブ） -->
+    <nav class="bg-white rounded-2xl p-1 card-shadow border border-purple-100/80 flex flex-wrap items-center justify-between gap-1">
+      <div class="flex flex-wrap gap-1">
+        <button id="tabBtn-overview" onclick="switchTab('overview')" class="tab-btn-active flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">
+          <span>📊</span><span>年間推移</span>
+        </button>
+        <button id="tabBtn-calendar" onclick="switchTab('calendar')" class="tab-btn-idle flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">
+          <span>📅</span><span>カレンダー</span>
+        </button>
+        <button id="tabBtn-event" onclick="switchTab('event')" class="tab-btn-idle flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">
+          <span>🎪</span><span>イベント</span>
+        </button>
+        <button id="tabBtn-music" onclick="switchTab('music')" class="tab-btn-idle flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">
+          <span>🎵</span><span>動画・ショート</span>
+        </button>
+        <button id="tabBtn-streaming" onclick="switchTab('streaming')" class="tab-btn-idle flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">
+          <span>🎙️</span><span>雑談・配信</span>
+        </button>
+        <button id="tabBtn-singing" onclick="switchTab('singing')" class="tab-btn-idle flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">
+          <span>📝</span><span>歌枠＆セトリ</span>
+        </button>
+        <button id="tabBtn-archive" onclick="switchTab('archive')" class="tab-btn-idle flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">
+          <span>⚖️</span><span>比較</span>
+        </button>
+      </div>
+
+      <!-- 右側コントロール：ハイライト開閉ボタン＆操作ヒント -->
+      <div class="flex items-center gap-1 pr-1">
+        <button type="button" id="kpiToggleBtn" onclick="toggleKpiSection()" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-bold text-purple-700 bg-purple-50/70 hover:bg-purple-100 border border-purple-100 transition cursor-pointer" title="ハイライトカードの表示／非表示を切り替え">
+          <span>📌</span><span>ハイライト</span><span id="kpiToggleChevron" class="text-[9px] opacity-80">▲</span>
+        </button>
+
+        <!-- 操作ガイド（ホバー／クリックで表示） -->
+        <div id="guidePopoverWrap" class="relative group">
+          <button type="button" onclick="toggleGuidePopover(event)" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-bold text-slate-400 hover:text-purple-700 hover:bg-purple-50 transition cursor-pointer" aria-label="操作ヒント">
+            <span>❓</span><span class="hidden sm:inline">操作ヒント</span>
+          </button>
+          <div id="guidePopover" class="hidden group-hover:block absolute right-0 mt-1.5 w-72 bg-white border border-purple-200 rounded-2xl p-3 shadow-xl z-40 text-[11px] text-slate-600 space-y-1.5 leading-relaxed">
+            <div class="font-black text-slate-800 text-xs pb-1 border-b border-slate-100">💡 グラフ・一覧の操作ヒント</div>
+            <div>・<span class="font-bold text-purple-700">棒・円・ヒートマップをクリック</span>：該当データの詳細一覧を表示</div>
+            <div>・<span class="font-bold text-purple-700">凡例をクリック</span>：各年・種別の表示／非表示を切替</div>
+            <div>・<span class="font-bold text-purple-700">サマリーやランキング行をクリック</span>：内訳や歌唱履歴を表示</div>
+            <div>・<span class="font-bold text-purple-700">✏️ アイコン</span>：タイトル・種別・回数除外の手動編集</div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ===================================================================
+         TAB 1: 📊 年間推移
+         =================================================================== -->
+    <section id="tab-overview" class="space-y-4">
+      <div class="bg-white rounded-2xl px-4 py-2.5 card-shadow border border-purple-100/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <h2 class="text-sm font-black text-slate-800">📈 月別パフォーマンス推移</h2>
+        <div class="inline-flex bg-purple-50 p-0.5 rounded-xl border border-purple-100 self-start sm:self-auto">
+          <button id="ovModeBtn-compare" onclick="setOverviewChartMode('compare')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-700 text-white shadow-sm transition cursor-pointer" title="初期表示は対象年＋直近1年（凡例クリックで他の過去年も追加表示）">月別で表示</button>
+          <button id="ovModeBtn-cumulative" onclick="setOverviewChartMode('cumulative')" class="px-2.5 py-1 rounded-lg text-xs font-bold text-purple-800 hover:bg-purple-100 transition cursor-pointer" title="1月〜12月の年間累計推移（凡例クリックで他の過去年も追加表示）">年間累計で表示</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white rounded-2xl p-4 card-shadow border border-purple-100/80">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-xs sm:text-sm font-black text-slate-800">⏱️ 月別 配信時間 (h)</h3>
+            <span id="ovHoursBadge" class="text-[10px] font-bold font-mono px-2 py-0.5 rounded-full bg-purple-50 text-purple-700"></span>
+          </div>
+          <div class="h-60"><canvas id="chartOvHours"></canvas></div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 card-shadow border border-purple-100/80">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-xs sm:text-sm font-black text-slate-800">🎙️ 月別 配信回数 (回)</h3>
+            <span id="ovStreamsBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700"></span>
+          </div>
+          <div class="h-60"><canvas id="chartOvStreams"></canvas></div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 card-shadow border border-purple-100/80">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-xs sm:text-sm font-black text-slate-800">🎬 月別 Full動画投稿数 (本)</h3>
+            <span id="ovFullBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-fuchsia-50 text-fuchsia-700"></span>
+          </div>
+          <div class="h-60"><canvas id="chartOvFull"></canvas></div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 card-shadow border border-purple-100/80">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-xs sm:text-sm font-black text-slate-800">🎤 月別 歌枠回数 (回)</h3>
+            <span id="ovSingingBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-pink-50 text-pink-700"></span>
+          </div>
+          <div class="h-60"><canvas id="chartOvSinging"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         TAB 2: 🎪 イベント
+         =================================================================== -->
+    <section id="tab-event" class="hidden space-y-3">
+      <!-- イベント総数＆種別内訳サマリー（オンライン／リアルは参考情報として控えめに表示） -->
+      <div class="bg-white rounded-2xl px-3.5 py-2.5 card-shadow border border-pink-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-baseline gap-1.5 pr-3 sm:border-r border-slate-100">
+            <span class="text-xs font-bold text-slate-500">🎪 イベント総数</span>
+            <span id="evKpiTotal" class="text-xl sm:text-2xl font-black text-slate-900">0</span>
+            <span class="text-[11px] font-bold text-slate-400">回</span>
+          </div>
+          <div id="evTypeSummaryBadges" class="flex flex-wrap items-center gap-1.5"></div>
+        </div>
+        <div id="evChannelRef" class="text-[10px] font-semibold text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 self-start sm:self-auto whitespace-nowrap">
+          参考：リアル 0回 / オンライン 0回
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+        <div class="md:col-span-5 bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+          <h3 class="text-xs sm:text-sm font-black text-slate-800 mb-2">🏷️ イベント種別内訳</h3>
+          <div class="h-48"><canvas id="chartEventType"></canvas></div>
+        </div>
+
+        <div class="md:col-span-7 bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-xs sm:text-sm font-black text-slate-800">📅 月別 イベント推移（種別別）</h3>
+            <span id="badgeEventCount" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-pink-50 text-pink-700">0回</span>
+          </div>
+          <div class="h-48"><canvas id="chartEventMonthly"></canvas></div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <h3 class="text-xs sm:text-sm font-black text-slate-800">📋 イベント一覧</h3>
+          <button id="sortBtn-event" onclick="toggleSortOrder('event')" class="px-2.5 py-1 rounded-xl border border-purple-200 text-[11px] font-bold text-purple-700 hover:bg-purple-50 transition cursor-pointer">日付：降順 ↓</button>
+        </div>
+        <div class="overflow-x-auto max-h-64 custom-scroll">
+          <table class="w-full text-xs text-left">
+            <thead class="bg-purple-50 text-purple-950 sticky top-0 z-10">
+              <tr>
+                <th class="py-1.5 px-2.5 rounded-tl-lg cursor-pointer hover:bg-purple-100" onclick="toggleSortOrder('event')">日付 ⇅</th>
+                <th class="py-1.5 px-2.5">タイトル</th>
+                <th class="py-1.5 px-2.5">種別</th>
+                <th class="py-1.5 px-2.5 text-slate-500">参考（形式）</th>
+                <th class="py-1.5 px-2 rounded-tr-lg text-center w-10">編集</th>
+              </tr>
+            </thead>
+            <tbody id="eventTableBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         TAB 3: 🎵 動画・ショート
+         =================================================================== -->
+    <section id="tab-music" class="hidden space-y-3">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <!-- 左カラム：Full動画 -->
+        <div class="space-y-3">
+          <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+            <div class="flex items-center justify-between gap-1 mb-2">
+              <h3 class="text-xs sm:text-sm font-black text-slate-800">🎬 月別 Full動画投稿数</h3>
+              <span id="fullMonthlySummary" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700">合計：0本</span>
+            </div>
+            <div class="h-44"><canvas id="chartFullMonthly"></canvas></div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+              <h3 class="text-xs font-black text-slate-800 mb-2">🎨 Full 種別内訳</h3>
+              <div class="h-44"><canvas id="chartFullType"></canvas></div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+              <div class="flex flex-wrap items-center justify-between gap-1 mb-2">
+                <h3 class="text-xs font-black text-slate-800">✨ クレジット別</h3>
+                <div class="inline-flex bg-purple-50 p-0.5 rounded-lg text-[10px] font-bold">
+                  <button id="crBtn-composer" onclick="switchCreditRanking('composer')" class="px-1.5 py-0.5 rounded-md bg-purple-700 text-white cursor-pointer">作曲</button>
+                  <button id="crBtn-illustrator" onclick="switchCreditRanking('illustrator')" class="px-1.5 py-0.5 rounded-md text-purple-700 hover:bg-purple-100 cursor-pointer">絵</button>
+                  <button id="crBtn-movie" onclick="switchCreditRanking('movie')" class="px-1.5 py-0.5 rounded-md text-purple-700 hover:bg-purple-100 cursor-pointer">動画</button>
+                  <button id="crBtn-mix" onclick="switchCreditRanking('mix')" class="px-1.5 py-0.5 rounded-md text-purple-700 hover:bg-purple-100 cursor-pointer">MIX</button>
+                </div>
+              </div>
+              <div class="grid grid-cols-12 gap-1.5 items-center h-40">
+                <div class="col-span-6 h-36"><canvas id="chartFullCredits"></canvas></div>
+                <div id="legendFullCredits" class="col-span-6 h-36 overflow-y-auto custom-scroll space-y-0.5 pr-0.5 text-[10px]"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+            <div class="flex flex-wrap items-center justify-between gap-1.5 mb-2">
+              <h3 class="text-xs sm:text-sm font-black text-slate-800">📼 Full動画一覧</h3>
+              <div class="flex items-center gap-1.5">
+                <input id="fullSearchInput" type="text" oninput="renderMusicTablesOnly()" placeholder="検索..." class="px-2 py-1 rounded-lg border border-purple-200 text-[11px] focus:outline-none focus:ring-2 focus:ring-purple-300 w-28 sm:w-36" />
+                <button id="sortBtn-full" onclick="toggleSortOrder('full')" class="px-2 py-1 rounded-lg border border-purple-200 text-[11px] font-bold text-purple-700 hover:bg-purple-50 cursor-pointer">日付：降順 ↓</button>
+              </div>
+            </div>
+            <div class="overflow-x-auto max-h-64 custom-scroll">
+              <table class="w-full text-[11px] text-left">
+                <thead class="bg-purple-50 text-purple-950 sticky top-0 z-10">
+                  <tr>
+                    <th class="py-1.5 px-2 rounded-tl-lg cursor-pointer hover:bg-purple-100" onclick="toggleSortOrder('full')">投稿日 ⇅</th>
+                    <th class="py-1.5 px-2">タイトル / 歌</th>
+                    <th class="py-1.5 px-2">種別</th>
+                    <th class="py-1.5 px-2">作曲 / 制作</th>
+                    <th class="py-1.5 px-1.5 rounded-tr-lg text-center w-9">編集</th>
+                  </tr>
+                </thead>
+                <tbody id="fullTableBody" class="divide-y divide-slate-100"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右カラム：Short動画 -->
+        <div class="space-y-3">
+          <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+            <div class="flex items-center justify-between gap-1 mb-2">
+              <h3 class="text-xs sm:text-sm font-black text-slate-800">📱 月別 Short動画投稿数</h3>
+              <span id="shortMonthlySummary" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-fuchsia-50 text-fuchsia-700">合計：0本</span>
+            </div>
+            <div class="h-44"><canvas id="chartShortMonthly"></canvas></div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+              <h3 class="text-xs font-black text-slate-800 mb-2">🏷️ Short カテゴリ内訳</h3>
+              <div class="h-44"><canvas id="chartShortType"></canvas></div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+              <h3 class="text-xs font-black text-slate-800 mb-2">🎼 Short 作曲者別内訳</h3>
+              <div class="grid grid-cols-12 gap-1.5 items-center h-40">
+                <div class="col-span-6 h-36"><canvas id="chartShortComposers"></canvas></div>
+                <div id="legendShortComposers" class="col-span-6 h-36 overflow-y-auto custom-scroll space-y-0.5 pr-0.5 text-[10px]"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+            <div class="flex flex-wrap items-center justify-between gap-1.5 mb-2">
+              <h3 class="text-xs sm:text-sm font-black text-slate-800">📲 Short動画一覧</h3>
+              <div class="flex items-center gap-1.5">
+                <input id="shortSearchInput" type="text" oninput="renderMusicTablesOnly()" placeholder="検索..." class="px-2 py-1 rounded-lg border border-purple-200 text-[11px] focus:outline-none focus:ring-2 focus:ring-purple-300 w-28 sm:w-36" />
+                <button id="sortBtn-short" onclick="toggleSortOrder('short')" class="px-2 py-1 rounded-lg border border-purple-200 text-[11px] font-bold text-purple-700 hover:bg-purple-50 cursor-pointer">日付：降順 ↓</button>
+              </div>
+            </div>
+            <div class="overflow-x-auto max-h-64 custom-scroll">
+              <table class="w-full text-[11px] text-left">
+                <thead class="bg-fuchsia-50 text-fuchsia-950 sticky top-0 z-10">
+                  <tr>
+                    <th class="py-1.5 px-2 rounded-tl-lg cursor-pointer hover:bg-fuchsia-100" onclick="toggleSortOrder('short')">投稿日 ⇅</th>
+                    <th class="py-1.5 px-2">タイトル</th>
+                    <th class="py-1.5 px-2">分類</th>
+                    <th class="py-1.5 px-2">作曲者 / 媒体</th>
+                    <th class="py-1.5 px-1.5 rounded-tr-lg text-center w-9">編集</th>
+                  </tr>
+                </thead>
+                <tbody id="shortTableBody" class="divide-y divide-slate-100"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         TAB 4: 🎙️ 雑談・配信
+         =================================================================== -->
+    <section id="tab-streaming" class="hidden space-y-3">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+        <div class="md:col-span-5 bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+          <h3 class="text-xs sm:text-sm font-black text-slate-800 mb-2">🏷️ 配信カテゴリ構成比</h3>
+          <div class="grid grid-cols-12 gap-2 items-center h-48">
+            <div class="col-span-6 h-44"><canvas id="chartStreamCat"></canvas></div>
+            <div id="legendStreamCat" class="col-span-6 h-44 overflow-y-auto custom-scroll space-y-0.5 pr-1 text-[11px]"></div>
+          </div>
+        </div>
+
+        <div class="md:col-span-7 bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+          <div class="flex flex-wrap items-center justify-between gap-1 mb-2">
+            <h3 class="text-xs sm:text-sm font-black text-slate-800">📊 月別 配信数推移（時間帯別）</h3>
+            <span id="streamMonthlySummary" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700">合計：0回</span>
+          </div>
+          <div class="h-48"><canvas id="chartStreamMonthly"></canvas></div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+        <div class="md:col-span-5 bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <h3 class="text-xs sm:text-sm font-black text-slate-800">🔥 曜日 × 時間帯 配信ヒートマップ</h3>
+            <div class="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">
+              <span>低</span>
+              <span class="w-3 h-3 rounded-sm" style="background-color:rgba(147,51,234,0.16);"></span>
+              <span class="w-3 h-3 rounded-sm" style="background-color:rgba(147,51,234,0.34);"></span>
+              <span class="w-3 h-3 rounded-sm" style="background-color:rgba(147,51,234,0.52);"></span>
+              <span class="w-3 h-3 rounded-sm" style="background-color:rgba(147,51,234,0.72);"></span>
+              <span class="w-3 h-3 rounded-sm" style="background-color:rgba(147,51,234,0.92);"></span>
+              <span>高</span>
+            </div>
+          </div>
+          <div id="heatmapContainer" class="overflow-x-auto mt-1"></div>
+        </div>
+
+        <div class="md:col-span-7 bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+          <div class="flex flex-wrap items-center justify-between gap-1.5 mb-2">
+            <h3 class="text-xs sm:text-sm font-black text-slate-800">📝 配信詳細ログ</h3>
+            <div class="flex flex-wrap items-center gap-1.5">
+              <select id="logTagFilter" onchange="renderStreamLogsTable()" class="px-2 py-1 rounded-lg border border-purple-200 text-[11px] font-bold text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-purple-300">
+                <option value="all">すべての種別</option>
+              </select>
+              <input id="logSearchInput" type="text" oninput="renderStreamLogsTable()" placeholder="タイトル検索..." class="px-2 py-1 rounded-lg border border-purple-200 text-[11px] focus:outline-none focus:ring-2 focus:ring-purple-300 w-32 sm:w-40" />
+              <button id="sortBtn-stream" onclick="toggleSortOrder('stream')" class="px-2 py-1 rounded-lg border border-purple-200 text-[11px] font-bold text-purple-700 hover:bg-purple-50 cursor-pointer">日付：降順 ↓</button>
+            </div>
+          </div>
+          <div class="overflow-x-auto max-h-64 custom-scroll">
+            <table class="w-full text-[11px] text-left">
+              <thead class="bg-purple-50 text-purple-950 sticky top-0 z-10">
+                <tr>
+                  <th class="py-1.5 px-2 rounded-tl-lg cursor-pointer hover:bg-purple-100" onclick="toggleSortOrder('stream')">日時 ⇅</th>
+                  <th class="py-1.5 px-2">タイトル</th>
+                  <th class="py-1.5 px-2">種別タグ</th>
+                  <th class="py-1.5 px-2 text-right">時間</th>
+                  <th class="py-1.5 px-1.5 rounded-tr-lg text-center w-9">編集</th>
+                </tr>
+              </thead>
+              <tbody id="streamLogsTableBody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         TAB 5: 📝 歌枠＆セトリ
+         =================================================================== -->
+    <section id="tab-singing" class="hidden space-y-3">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-xs sm:text-sm font-black text-slate-800">🗓️ 月別 開催回数推移（種別別）</h3>
+            <span id="setlistSessionsMonthlyBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700">合計 0回</span>
+          </div>
+          <div class="h-48"><canvas id="chartSetlistSessionsMonthly"></canvas></div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-xs sm:text-sm font-black text-slate-800">📅 月別 歌唱曲数推移（種別別）</h3>
+            <span id="setlistMonthlyBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-pink-50 text-pink-700">合計 0曲</span>
+          </div>
+          <div class="h-48"><canvas id="chartSetlistMonthly"></canvas></div>
+        </div>
+      </div>
+
+      <!-- 区分切り替えバー -->
+      <div class="bg-white rounded-2xl px-3.5 py-2 card-shadow border border-purple-100/80 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-1.5 text-xs font-black text-slate-700">
+          <span>🔀</span>
+          <span>レパートリー＆最多歌唱 表示対象：</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-1 bg-purple-50/80 p-1 rounded-xl border border-purple-100">
+          <button id="slScopeBtn-stream" onclick="setSetlistAnalyticsScope('stream')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-700 text-white shadow-sm transition cursor-pointer">🎙️ 歌枠（カラオケ含む）</button>
+          <button id="slScopeBtn-live_all" onclick="setSetlistAnalyticsScope('live_all')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-purple-800 hover:bg-purple-100 transition cursor-pointer">🎸 LIVE（すべて）</button>
+          <button id="slScopeBtn-live_solo" onclick="setSetlistAnalyticsScope('live_solo')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-pink-700 hover:bg-pink-100 transition cursor-pointer">🎸 LIVE (solo)</button>
+          <button id="slScopeBtn-live_comp" onclick="setSetlistAnalyticsScope('live_comp')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-cyan-700 hover:bg-cyan-100 transition cursor-pointer">🎸 LIVE (Comp・Guest)</button>
+          <button id="slScopeBtn-all" onclick="setSetlistAnalyticsScope('all')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-slate-600 hover:bg-slate-200/70 transition cursor-pointer">🎵 全種別</button>
+        </div>
+      </div>
+
+      <!-- サマリー(50%) ＋ TOP10(50%) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80 flex flex-col justify-between">
+          <h3 id="setlistSummaryHeading" class="text-xs sm:text-sm font-black text-slate-800 mb-2">📊 レパートリー＆初披露サマリー</h3>
+          <div id="setlistSummaryCardWrap" class="space-y-2.5 flex-1 flex flex-col justify-between"></div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+          <h3 id="topSungHeading" class="text-xs sm:text-sm font-black text-slate-800 mb-2" title="同数は同率順位で表示・行クリックで歌唱履歴を表示">🌟 歌枠（カラオケ含む）最多歌唱曲ランキング TOP10</h3>
+          <div id="topSungTableWrap" class="max-h-60 overflow-y-auto custom-scroll mt-1"></div>
+        </div>
+      </div>
+
+      <!-- セットリスト一覧 -->
+      <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
+          <h3 id="setlistSectionTitle" class="text-xs sm:text-sm font-black text-slate-800">🎤 セットリスト一覧</h3>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <div class="inline-flex bg-purple-50 p-0.5 rounded-xl border border-purple-100">
+              <button id="slModeBtn-unique" onclick="setSetlistMode('unique')" class="px-2 py-1 rounded-lg text-[11px] font-bold bg-purple-700 text-white shadow-sm transition cursor-pointer">重複を除く</button>
+              <button id="slModeBtn-all" onclick="setSetlistMode('all')" class="px-2 py-1 rounded-lg text-[11px] font-bold text-purple-800 hover:bg-purple-100 transition cursor-pointer">全部表示</button>
+            </div>
+            <button id="sortBtn-setlist" onclick="toggleSortOrder('setlist')" class="px-2 py-1 rounded-xl border border-purple-200 text-[11px] font-bold text-purple-700 hover:bg-purple-50 cursor-pointer">日付：降順 ↓</button>
+            <input id="setlistSearchInput" type="text" oninput="filterSetlistDisplay()" placeholder="曲名・タイトル検索..." class="px-2 py-1 rounded-xl border border-purple-200 text-[11px] focus:outline-none focus:ring-2 focus:ring-purple-300 w-36" />
+            <span id="setlistCountBadge" class="px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 text-[10px] font-bold">0曲</span>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-1.5 mb-2.5 pb-2 border-b border-slate-100">
+          <span class="text-[11px] font-bold text-slate-500 mr-1">種別（複数選択可）：</span>
+          <div id="setlistTypeFilterBar" class="flex flex-wrap gap-1.5"></div>
+        </div>
+
+        <div id="setlistCardsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 max-h-80 overflow-y-auto custom-scroll pr-1"></div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         TAB 6: ⚖️ 比較
+         =================================================================== -->
+    <section id="tab-archive" class="hidden space-y-3">
+      <!-- 比較年度選択バー -->
+      <div class="bg-white rounded-2xl px-3.5 py-2.5 card-shadow border border-purple-100/80 flex flex-wrap items-center justify-between gap-2">
+        <h3 class="text-xs sm:text-sm font-black text-slate-800">⚖️ 比較する年度を選択（2020年〜）</h3>
+        <div class="flex flex-wrap items-center gap-1.5 text-xs">
+          <select id="cmpYearA" onchange="renderArchiveComparison()" class="w-44 px-2.5 py-1.5 rounded-xl border border-purple-200 font-bold text-purple-900 bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-300 cursor-pointer"></select>
+          <span class="font-black text-slate-400 px-0.5">vs</span>
+          <select id="cmpYearB" onchange="renderArchiveComparison()" class="w-44 px-2.5 py-1.5 rounded-xl border border-sky-200 font-bold text-sky-900 bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-300 cursor-pointer"></select>
+        </div>
+      </div>
+
+      <!-- 中段2列：左＝月別指標比較 ／ 右＝6軸レーダーチャート -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80 space-y-2">
+          <div class="flex flex-wrap items-center justify-between gap-1.5">
+            <h3 class="text-xs sm:text-sm font-black text-slate-800">📊 月別 指標比較</h3>
+            <select id="cmpMetric" onchange="renderArchiveComparison()" class="px-2 py-1 rounded-lg border border-slate-200 text-[11px] font-bold text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-purple-300 cursor-pointer">
+              <option value="hours">配信時間 (h)</option>
+              <option value="streams">配信回数 (回)</option>
+              <option value="full">Full動画 (本)</option>
+              <option value="short">Short動画 (本)</option>
+              <option value="singing">歌枠回数 (回)</option>
+              <option value="songs">歌唱曲数 (曲)</option>
+              <option value="events">イベント回数 (回)</option>
+            </select>
+          </div>
+          <div id="cmpStatsBar" class="grid grid-cols-3 gap-2 text-center bg-slate-50 rounded-xl p-1.5 text-xs"></div>
+          <div class="h-56"><canvas id="chartArchiveCompare"></canvas></div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80 space-y-2">
+          <div class="flex flex-wrap items-center justify-between gap-1.5">
+            <h3 class="text-xs sm:text-sm font-black text-slate-800" title="各軸の最大値＝100点基準でスコア化（ホバーで実数値を表示）">🕸️ 活動バランス比較（6軸レーダーチャート）</h3>
+            <div class="inline-flex bg-purple-50 p-0.5 rounded-lg border border-purple-100 text-[10px] font-bold">
+              <button id="radarScaleBtn-all" onclick="setRadarScaleMode('all')" class="px-2 py-0.5 rounded-md bg-purple-700 text-white shadow-sm transition cursor-pointer">過去最大</button>
+              <button id="radarScaleBtn-pair" onclick="setRadarScaleMode('pair')" class="px-2 py-0.5 rounded-md text-purple-800 hover:bg-purple-100 transition cursor-pointer">2か年の最大</button>
+            </div>
+          </div>
+          <div class="h-64"><canvas id="chartArchiveRadar"></canvas></div>
+        </div>
+      </div>
+
+      <!-- 下段：活動スタイル変化（実数比較＆2020年〜推移・横並び） -->
+      <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80 space-y-2.5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <h3 class="text-xs sm:text-sm font-black text-slate-800">🔄 活動スタイル変化（実数比較）</h3>
+          <div class="flex flex-wrap items-center gap-1 bg-purple-50/80 p-1 rounded-xl border border-purple-100 text-[11px] font-bold">
+            <button id="styleBtn-time" onclick="setStyleShiftMode('time')" class="px-2.5 py-1 rounded-lg bg-purple-700 text-white shadow-sm transition cursor-pointer">🕐 時間帯</button>
+            <button id="styleBtn-streamCat" onclick="setStyleShiftMode('streamCat')" class="px-2.5 py-1 rounded-lg text-purple-800 hover:bg-purple-100 transition cursor-pointer">🎙️ 配信カテゴリ</button>
+            <button id="styleBtn-eventChannel" onclick="setStyleShiftMode('eventChannel')" class="px-2.5 py-1 rounded-lg text-purple-800 hover:bg-purple-100 transition cursor-pointer">🎪 イベント種別</button>
+            <button id="styleBtn-fullType" onclick="setStyleShiftMode('fullType')" class="px-2.5 py-1 rounded-lg text-purple-800 hover:bg-purple-100 transition cursor-pointer">🎬 動画種別</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+          <div class="bg-slate-50/70 rounded-xl p-2.5 border border-slate-100">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[11px] font-black text-slate-700">⚖️ 選択年度の実数比較</span>
+              <span id="stylePairBadge" class="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full"></span>
+            </div>
+            <div class="max-h-64 overflow-y-auto custom-scroll pr-1">
+              <div id="styleComparePairWrap" class="h-56"><canvas id="chartStyleComparePair"></canvas></div>
+            </div>
+          </div>
+
+          <div class="bg-slate-50/70 rounded-xl p-2.5 border border-slate-100">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[11px] font-black text-slate-700">📊 年別 実数推移（2020年〜）</span>
+            </div>
+            <div class="h-64"><canvas id="chartStyleYearlyTrend"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         TAB 7: 📅 自動連携カレンダー（年間／月間切替＋フィルター）
+         =================================================================== -->
+    <section id="tab-calendar" class="hidden space-y-3">
+      <!-- コントロールバー -->
+      <div class="bg-white rounded-2xl px-3.5 py-2.5 card-shadow border border-purple-100/80">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <!-- 左〜中央：タイトル・年度切替・表示モード切替・統合月選択ピルバー -->
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-sm font-black text-slate-800 mr-0.5 whitespace-nowrap">📅 活動カレンダー</h2>
+
+            <!-- 年切り替え -->
+            <div class="inline-flex items-center gap-0.5 bg-purple-50 px-1 py-0.5 rounded-xl border border-purple-100">
+              <button type="button" onclick="autoCalChangeYear(-1)" class="w-6 h-6 rounded-lg hover:bg-purple-100 text-purple-800 font-bold text-xs flex items-center justify-center transition cursor-pointer" title="前年へ">◀</button>
+              <span id="autoCalYearLabel" class="text-xs sm:text-sm font-black text-purple-900 px-1.5 min-w-[56px] text-center whitespace-nowrap">2026年</span>
+              <button type="button" onclick="autoCalChangeYear(1)" class="w-6 h-6 rounded-lg hover:bg-purple-100 text-purple-800 font-bold text-xs flex items-center justify-center transition cursor-pointer" title="翌年へ">▶</button>
+            </div>
+
+            <!-- 月間 / 年間 切り替え -->
+            <div class="inline-flex bg-purple-50 p-0.5 rounded-xl border border-purple-100">
+              <button type="button" id="autoCalViewBtn-month" onclick="setAutoCalViewMode('month')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-700 text-white shadow-sm transition cursor-pointer whitespace-nowrap">月間表示</button>
+              <button type="button" id="autoCalViewBtn-year" onclick="setAutoCalViewMode('year')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-purple-800 hover:bg-purple-100 transition cursor-pointer whitespace-nowrap">年間表示</button>
+            </div>
+
+            <!-- 統合月選択ピルバー（月間表示時のみ表示：◀ 1月〜12月 ▶） -->
+            <div id="calMonthNavWrap" class="hidden inline-flex items-center gap-0.5 bg-purple-50 px-1 py-0.5 rounded-xl border border-purple-100 max-w-full overflow-x-auto custom-scroll">
+              <button type="button" onclick="autoCalChangeMonth(-1)" class="w-5 h-5 rounded-md hover:bg-purple-100 text-purple-800 font-bold text-[10px] flex items-center justify-center shrink-0 transition cursor-pointer" title="前月へ">◀</button>
+              <div id="autoCalMonthPills" class="inline-flex items-center gap-0.5"></div>
+              <button type="button" onclick="autoCalChangeMonth(1)" class="w-5 h-5 rounded-md hover:bg-purple-100 text-purple-800 font-bold text-[10px] flex items-center justify-center shrink-0 transition cursor-pointer" title="翌月へ">▶</button>
+            </div>
+          </div>
+
+          <!-- 右側：件数バッジ＆フィルター開閉 -->
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span id="autoCalCountBadge" class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-100 whitespace-nowrap">0件</span>
+            <button type="button" id="autoCalFilterToggleBtn" onclick="toggleAutoCalFilterPanel()" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border border-purple-200 bg-white hover:bg-purple-50 text-xs font-bold text-purple-800 transition cursor-pointer whitespace-nowrap">
+              <span>🔍</span><span id="autoCalFilterBtnText">フィルター</span><span id="autoCalFilterChevron" class="text-[9px] opacity-70">▼</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 開閉式フィルターパネル -->
+        <div id="autoCalFilterPanel" class="hidden mt-2.5 pt-2.5 border-t border-slate-100 space-y-2.5">
+          <!-- クイック操作＆検索 -->
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class="text-[11px] font-bold text-slate-500">クイック切替：</span>
+              <button type="button" onclick="autoCalApplyPreset('all')" class="px-2 py-0.5 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 text-[11px] font-bold border border-purple-200 transition cursor-pointer">すべてON</button>
+              <button type="button" onclick="autoCalApplyPreset('none')" class="px-2 py-0.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-600 text-[11px] font-bold border border-slate-200 transition cursor-pointer">すべてOFF</button>
+              <button type="button" onclick="autoCalApplyPreset('no_chat')" class="px-2 py-0.5 rounded-lg bg-indigo-50 hover:bg-purple-100 text-indigo-700 text-[11px] font-bold border border-purple-200 transition cursor-pointer">雑談以外</button>
+              <button type="button" onclick="autoCalApplyPreset('works_events')" class="px-2 py-0.5 rounded-lg bg-fuchsia-50 hover:bg-fuchsia-100 text-fuchsia-700 text-[11px] font-bold border border-purple-200 transition cursor-pointer">動画・イベントのみ</button>
+            </div>
+            <input id="autoCalSearchInput" type="text" oninput="renderAutoCalBody()" placeholder="タイトル検索..." class="px-2.5 py-1 rounded-xl border border-purple-200 text-[11px] focus:outline-none focus:ring-2 focus:ring-purple-300 w-40 sm:w-48" />
+          </div>
+
+          <!-- 大分類フィルター（Song / Short / Ivent / Streaming） -->
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="text-[11px] font-bold text-slate-500 mr-1">種別：</span>
+            <div id="autoCalSourceFilters" class="flex flex-wrap gap-1.5"></div>
+          </div>
+
+          <!-- 配信タグ別フィルター -->
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="text-[11px] font-bold text-slate-500 mr-1">配信タグ：</span>
+            <div id="autoCalStreamTagFilters" class="flex flex-wrap gap-1.5"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- カレンダー本体 -->
+      <div class="bg-white rounded-2xl card-shadow border border-purple-100/80 overflow-hidden">
+        <div id="autoCalBodyContainer" class="overflow-auto custom-scroll max-h-[75vh] relative"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- フッター（管理用：データ読込・JSON出力を控えめに配置） -->
+  <footer class="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6 mt-8 pt-4 border-t border-purple-100/80">
+    <!-- 折りたたみ式データ管理パネル -->
+    <div id="importerPanel" class="hidden mb-4 bg-white rounded-2xl p-4 card-shadow border border-purple-100/80">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <div class="text-xs font-black text-slate-700">⚙️ データ管理（Excel / CSV / JSON 読込・出力）</div>
+        <div class="flex flex-wrap items-center gap-1.5">
+          <button onclick="exportStateJson()" class="inline-flex items-center gap-1 bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-800 px-2.5 py-1 rounded-xl text-[11px] font-bold transition cursor-pointer" title="編集結果を含む全データを default_data.json として保存">
+            <span>💾</span><span>JSON出力 (default_data.json)</span>
+          </button>
+          <button onclick="reloadHostedDefaultData()" class="inline-flex items-center gap-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 px-2.5 py-1 rounded-xl text-[11px] font-bold transition cursor-pointer" title="リポジトリ内の ./data/default_data.json を再読込">
+            <span>🔄</span><span>公開データ再読込</span>
+          </button>
+          <button onclick="openResetConfirmModal()" class="inline-flex items-center gap-1 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 px-2.5 py-1 rounded-xl text-[11px] font-bold transition cursor-pointer">
+            <span>🗑️</span><span>初期状態に戻す</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="dropZone" class="border-2 border-dashed border-purple-200 rounded-xl p-3 text-center transition cursor-pointer hover:bg-purple-50/40" onclick="document.getElementById('fileInput').click()">
+        <input id="fileInput" type="file" multiple accept=".xlsx,.xls,.csv,.json" class="hidden" onchange="handleFilesSelected(this.files)" />
+        <div class="text-xs sm:text-sm font-bold text-slate-700">📂 Excel (.xlsx) / CSV / バックアップJSON をここにドラッグ＆ドロップ（複数一括OK）</div>
+        <div class="text-[11px] text-slate-400 mt-0.5">ファイル名から Streaming / Song / Short / Set list / Ivent を自動判別し、全年度のデータを読み込みます（個別年選択は2020年〜）</div>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-between gap-2 mt-2.5">
+        <div id="loadedFilesStatus" class="flex flex-wrap gap-1.5 text-[11px]">
+          <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">Streaming: 未読込</span>
+          <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">Song: 未読込</span>
+          <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">Short: 未読込</span>
+          <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">Set list: 未読込</span>
+          <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">Ivent: 未読込</span>
+        </div>
+        <span id="autoSaveStatus" class="text-[11px] text-emerald-600 font-semibold"></span>
+      </div>
+      <div id="importDebugLog" class="hidden mt-2 pt-2 border-t border-slate-100 text-[10px] text-slate-500 space-y-1 font-mono"></div>
     </div>
 
-    <!-- 項目編集モーダル -->
-    <div id="editModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4" onclick="if(event.target===this) closeModal('editModal')">
-        <div class="card w-full max-w-md p-5 space-y-4 shadow-2xl">
-            <div class="flex items-center justify-between">
-                <h3 class="font-extrabold text-base">✏️ データの編集</h3>
-                <button onclick="closeModal('editModal')" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
-            </div>
-            <input type="hidden" id="editCategory">
-            <input type="hidden" id="editIndex">
-            <div class="space-y-3 text-xs">
-                <div>
-                    <label class="block font-bold mb-1">日付 (YYYY-MM-DD)</label>
-                    <input type="date" id="editDate" class="w-full border border-slate-200 rounded-lg p-2">
-                </div>
-                <div>
-                    <label class="block font-bold mb-1">タイトル / 曲名</label>
-                    <input type="text" id="editTitle" class="w-full border border-slate-200 rounded-lg p-2">
-                </div>
-                <div id="editExtraWrap">
-                    <label id="editExtraLabel" class="block font-bold mb-1">種別 / タグ</label>
-                    <input type="text" id="editExtra" class="w-full border border-slate-200 rounded-lg p-2">
-                </div>
-            </div>
-            <div class="flex justify-between items-center pt-2">
-                <button onclick="deleteEditedItem()" class="text-rose-600 font-bold px-3 py-1.5 rounded-lg hover:bg-rose-50 text-xs">削除する</button>
-                <div class="space-x-2">
-                    <button onclick="closeModal('editModal')" class="px-4 py-1.5 border border-slate-200 rounded-full text-xs font-bold">キャンセル</button>
-                    <button onclick="saveEditedItem()" class="px-4 py-1.5 bg-purple-600 text-white rounded-full text-xs font-bold hover:bg-purple-700">保存</button>
-                </div>
-            </div>
-        </div>
+    <div class="flex items-center justify-between text-[11px] text-slate-400">
+      <span>YUKIMI ACTIVITY ANALYTICS</span>
+      <button type="button" onclick="toggleImporter()" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-slate-400 hover:text-purple-700 hover:bg-purple-50/70 transition cursor-pointer" title="データの読み込み・JSON出力パネルを開閉">
+        <span>⚙️</span><span>データ管理</span>
+      </button>
     </div>
+  </footer>
 
-    <!-- JavaScriptモジュール群（機能・タブごとに分割） -->
-    <script src="./js/config.js"></script>
-    <script src="./js/store.js"></script>
-    <script src="./js/parser.js"></script>
-    <script src="./js/modals.js"></script>
-    <script src="./js/tabs/overview.js"></script>
-    <script src="./js/tabs/calendar.js"></script>
-    <script src="./js/tabs/event.js"></script>
-    <script src="./js/tabs/music.js"></script>
-    <script src="./js/tabs/streaming.js"></script>
-    <script src="./js/tabs/singing.js"></script>
-    <script src="./js/tabs/archive.js"></script>
-    <script src="./js/main.js"></script>
+  <!-- 詳細一覧モーダル -->
+  <div id="detailModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4" onclick="if(event.target===this) closeDetailModal()">
+    <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[82vh] flex flex-col shadow-2xl border border-purple-100 overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-purple-50/60">
+        <div>
+          <h3 id="detailModalTitle" class="text-sm sm:text-base font-black text-slate-900">詳細一覧</h3>
+          <p id="detailModalCount" class="text-[11px] text-slate-500 mt-0.5 font-mono"></p>
+        </div>
+        <button onclick="closeDetailModal()" class="w-8 h-8 rounded-full hover:bg-purple-100 text-slate-500 hover:text-purple-800 font-bold text-lg flex items-center justify-center cursor-pointer">×</button>
+      </div>
+      <div id="detailModalBody" class="p-4 overflow-y-auto custom-scroll flex-1 text-xs"></div>
+    </div>
+  </div>
+
+  <!-- データ編集モーダル -->
+  <div id="editModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4" onclick="if(event.target===this) closeEditModal()">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-purple-100 overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-purple-50/60">
+        <h3 id="editModalHeading" class="text-sm font-black text-slate-900">✏️ データを編集</h3>
+        <button onclick="closeEditModal()" class="w-8 h-8 rounded-full hover:bg-purple-100 text-slate-500 font-bold text-lg flex items-center justify-center cursor-pointer">×</button>
+      </div>
+      <div class="p-5 space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-600 mb-1">タイトル / 曲名</label>
+          <input id="editFieldTitle" type="text" class="w-full px-3 py-2 rounded-xl border border-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-400" />
+        </div>
+        <div>
+          <label id="editFieldTagLabel" class="block font-bold text-slate-600 mb-1">種別 / タグ（複数の場合はカンマ区切り）</label>
+          <input id="editFieldTags" type="text" class="w-full px-3 py-2 rounded-xl border border-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-400" />
+        </div>
+        <div id="editFieldExtraWrap" class="hidden">
+          <label id="editFieldExtraLabel" class="block font-bold text-slate-600 mb-1">補足</label>
+          <input id="editFieldExtra" type="text" class="w-full px-3 py-2 rounded-xl border border-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-400" />
+        </div>
+        <div id="editFieldFlagWrap" class="hidden flex items-center gap-2 pt-1">
+          <input id="editFieldFlag" type="checkbox" class="rounded border-purple-300 text-purple-600 focus:ring-purple-400 w-4 h-4" />
+          <label id="editFieldFlagLabel" for="editFieldFlag" class="font-bold text-slate-700 cursor-pointer">回数カウントから除外する</label>
+        </div>
+      </div>
+      <div class="px-5 py-3 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
+        <button onclick="closeEditModal()" class="px-4 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-white cursor-pointer">キャンセル</button>
+        <button onclick="saveEditModal()" class="px-4 py-1.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold shadow-sm cursor-pointer">💾 保存して反映</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 初期化確認モーダル -->
+  <div id="resetModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4" onclick="if(event.target===this) closeResetConfirmModal()">
+    <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl border border-rose-100 p-5 space-y-3">
+      <h3 class="text-sm font-black text-slate-900">🗑️ データを初期状態に戻しますか？</h3>
+      <p class="text-xs text-slate-500">読み込んだExcel/CSVデータと編集内容・自動保存データがクリアされ、初期サンプル表示に戻ります。</p>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeResetConfirmModal()" class="px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer">キャンセル</button>
+        <button onclick="executeResetData()" class="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold cursor-pointer">初期化する</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- トースト通知 -->
+  <div id="toastEl" class="hidden fixed bottom-5 right-5 z-50 bg-slate-900 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-lg"></div>
+
+  <script src="./js/config.js"></script>
+  <script src="./js/charts.js"></script>
+  <script src="./js/sample-data.js"></script>
+  <script src="./js/store.js"></script>
+  <script src="./js/parser.js"></script>
+  <script src="./js/core.js"></script>
+  <script src="./js/tabs/overview.js"></script>
+  <script src="./js/tabs/event.js"></script>
+  <script src="./js/tabs/music.js"></script>
+  <script src="./js/tabs/streaming.js"></script>
+  <script src="./js/tabs/singing.js"></script>
+  <script src="./js/tabs/archive.js"></script>
+  <script src="./js/modals.js"></script>
+  <script src="./js/tabs/calendar.js"></script>
+  <script src="./js/main.js"></script>
 </body>
 </html>
