@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <script>
+    <meta name="robots" content="noindex, nofollow">
+<script>
   // URLに ?exclude=1 が付いていたら、このブラウザを除外対象として記憶する
   if (location.search.includes('exclude=1')) {
     localStorage.setItem('ga_exclude', 'true');
@@ -215,6 +216,133 @@
       background-color: #181428;
       color: #f1f5f9;
     }
+
+    /* =========================================================================
+       自動連携カレンダータブ専用スタイル（ライト／ダーク対応）
+       ========================================================================= */
+    .cal-table {
+      border-spacing: 0;
+      border-collapse: separate;
+      table-layout: fixed;
+      width: 1910px;
+    }
+    .cal-table th.cal-sticky-month {
+      position: sticky; top: 0; z-index: 20;
+      background-color: #faf5ff; color: #4c1d95;
+      border-bottom: 2px solid #e9d5ff;
+      width: 156px;
+    }
+    .cal-table th.cal-sticky-day {
+      position: sticky; left: 0; z-index: 20;
+      background-color: #ffffff; color: #64748b;
+      border-right: 2px solid #e9d5ff;
+      width: 38px;
+    }
+    .cal-table th.cal-sticky-corner {
+      position: sticky; top: 0; left: 0; z-index: 30;
+      background-color: #f3e8ff; color: #581c87;
+      border-right: 2px solid #e9d5ff;
+      border-bottom: 2px solid #e9d5ff;
+      width: 38px;
+    }
+    .cal-table td {
+      vertical-align: top;
+      width: 156px;
+      overflow: hidden;
+      transition: background-color 0.12s ease;
+    }
+    .cal-table td.cal-cell-valid:hover,
+    .cal-month-cell:hover {
+      background-color: rgba(147, 51, 234, 0.05);
+    }
+    .cal-table tr.cal-milestone-row td,
+    .cal-table tr.cal-milestone-row th {
+      border-bottom: 1px solid #d8b4fe;
+    }
+    .cal-hatch {
+      background: repeating-linear-gradient(
+        -45deg,
+        rgba(148, 163, 184, 0.16),
+        rgba(148, 163, 184, 0.16) 4px,
+        transparent 4px,
+        transparent 9px
+      );
+      background-color: #f8fafc;
+      pointer-events: none;
+    }
+    .cal-sun { background-color: #fff1f2 !important; }
+    .cal-sat { background-color: #eff6ff !important; }
+    .cal-item-chip {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.3rem;
+      border-radius: 0.375rem;
+      padding: 0.2rem 0.4rem;
+      font-size: 11px;
+      line-height: 1.3;
+      cursor: pointer;
+      text-align: left;
+      border: 1px solid transparent;
+      max-width: 100%;
+      overflow: hidden;
+      transition: transform 0.1s ease, filter 0.12s ease;
+      word-break: break-word;
+    }
+    .cal-item-chip:hover {
+      filter: brightness(0.95);
+      transform: translateY(-0.5px);
+    }
+    .cal-title-ellipsis {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      word-break: break-all;
+    }
+
+    html.dark .cal-table th.cal-sticky-month {
+      background-color: #261c42; color: #e9d5ff;
+      border-bottom-color: #3b2d63;
+    }
+    html.dark .cal-table th.cal-sticky-day {
+      background-color: #181428; color: #94a3b8;
+      border-right-color: #3b2d63;
+    }
+    html.dark .cal-table th.cal-sticky-corner {
+      background-color: #2f234f; color: #f3e8ff;
+      border-right-color: #3b2d63;
+      border-bottom-color: #3b2d63;
+    }
+    html.dark .cal-table td.cal-cell-valid:hover,
+    html.dark .cal-month-cell:hover {
+      background-color: rgba(168, 85, 247, 0.12);
+    }
+    html.dark .cal-table tr.cal-milestone-row td,
+    html.dark .cal-table tr.cal-milestone-row th {
+      border-bottom-color: #3b2d63;
+    }
+    html.dark .cal-hatch {
+      background-color: #141122;
+      background-image: repeating-linear-gradient(
+        -45deg,
+        rgba(148, 163, 184, 0.12),
+        rgba(148, 163, 184, 0.12) 4px,
+        transparent 4px,
+        transparent 9px
+      );
+    }
+    html.dark .cal-sun {
+      background-color: rgba(244, 63, 94, 0.22) !important;
+      box-shadow: inset 3px 0 0 rgba(251, 113, 133, 0.7);
+    }
+    html.dark .cal-sat {
+      background-color: rgba(56, 189, 248, 0.20) !important;
+      box-shadow: inset 3px 0 0 rgba(96, 165, 250, 0.7);
+    }
+    html.dark .cal-hol-label {
+      color: #fda4af !important;
+    }
   </style>
 </head>
 <body class="min-h-screen antialiased pb-8">
@@ -226,17 +354,11 @@
         <div>
           <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-white/10 backdrop-blur-sm text-[11px] font-semibold tracking-wide text-purple-100 mb-1.5">
             <span>💜 YUKIMI ACTIVITY ANALYTICS</span>
-            <span class="opacity-50">|</span>
-            <span id="dataSourceBadge">サンプルデータ表示中</span>
           </div>
-          <h1 id="reportTitle" class="text-xl sm:text-2xl font-black tracking-tight">雪見 2026年 活動レポート</h1>
+          <h1 id="reportTitle" class="text-xl sm:text-2xl font-black tracking-tight">2026年 活動レポート</h1>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-          <button id="themeToggleBtn" onclick="toggleThemeMode()" class="inline-flex items-center gap-1.5 bg-white/15 hover:bg-white/25 border border-white/25 text-white px-2.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer" title="ライトモード／ダークモードを切り替え">
-            <span id="themeToggleIcon">🌙</span><span id="themeToggleText">ダーク</span>
-          </button>
-
           <select id="yearFilterSelect" onchange="onYearFilterChange()" class="bg-white/15 hover:bg-white/20 text-white border border-white/25 rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-purple-300 cursor-pointer">
             <option value="2026" class="text-slate-800">対象：2026年</option>
           </select>
@@ -247,6 +369,10 @@
 
           <button onclick="toggleImporter()" class="inline-flex items-center gap-1.5 bg-gradient-to-r from-fuchsia-500 to-purple-500 hover:from-fuchsia-400 hover:to-purple-400 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-md transition cursor-pointer">
             <span>📁</span><span>Excel / CSV / JSON読込</span>
+          </button>
+
+          <button id="themeToggleBtn" onclick="toggleThemeMode()" class="inline-flex items-center gap-1 bg-white/5 hover:bg-white/15 border border-white/15 text-purple-200/80 hover:text-white px-2 py-1.5 rounded-xl text-[11px] font-semibold transition cursor-pointer" title="ライトモード／ダークモードを切り替え">
+            <span id="themeToggleIcon">🌙</span><span id="themeToggleText">ダーク</span>
           </button>
         </div>
       </div>
@@ -266,7 +392,7 @@
             <span class="px-2 py-0.5 rounded-full bg-white/10 text-purple-100">Set list: 未読込</span>
             <span class="px-2 py-0.5 rounded-full bg-white/10 text-purple-100">Ivent: 未読込</span>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2">
             <span id="autoSaveStatus" class="text-[11px] text-emerald-200 font-semibold"></span>
             <button onclick="openResetConfirmModal()" class="px-2.5 py-1 rounded-lg bg-rose-500/80 hover:bg-rose-500 text-white text-[11px] font-bold transition cursor-pointer">🗑️ 初期状態に戻す</button>
           </div>
@@ -279,8 +405,8 @@
   <!-- メインコンテンツ -->
   <main class="max-w-7xl mx-auto px-3 sm:px-5 lg:px-6 -mt-7 space-y-3">
 
-    <!-- 上部KPIカード（5列コンパクト） -->
-    <section class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
+    <!-- 上部KPIカード（5列コンパクト・開閉可能） -->
+    <section id="kpiSection" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
       <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
         <div class="flex items-center justify-between text-[11px] font-bold text-purple-600">
           <span>配信回数</span><span>🎙️</span>
@@ -335,78 +461,101 @@
           <span id="kpiEvents" class="text-xl sm:text-2xl font-black text-slate-900">0</span>
           <span class="text-[11px] font-bold text-slate-500">回</span>
         </div>
-        <div id="kpiEventsBreakdown" class="text-[10px] text-slate-500 mt-0.5 truncate" title="">内訳：-</div>
+        <div id="kpiEventsBreakdown" class="text-[10px] text-slate-500 mt-0.5 leading-snug break-words" title="">内訳：-</div>
       </div>
     </section>
 
-    <!-- タブナビゲーション（全6タブ） -->
-    <nav class="bg-white rounded-2xl p-1 card-shadow border border-purple-100/80 flex flex-wrap gap-1">
-      <button id="tabBtn-overview" onclick="switchTab('overview')" class="tab-btn-active flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">
-        <span>📊</span><span>年間推移</span>
-      </button>
-      <button id="tabBtn-event" onclick="switchTab('event')" class="tab-btn-idle flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">
-        <span>🎪</span><span>イベント</span>
-      </button>
-      <button id="tabBtn-music" onclick="switchTab('music')" class="tab-btn-idle flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">
-        <span>🎵</span><span>動画・ショート</span>
-      </button>
-      <button id="tabBtn-streaming" onclick="switchTab('streaming')" class="tab-btn-idle flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">
-        <span>🎙️</span><span>雑談・配信</span>
-      </button>
-      <button id="tabBtn-singing" onclick="switchTab('singing')" class="tab-btn-idle flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">
-        <span>📝</span><span>歌枠＆セトリ</span>
-      </button>
-      <button id="tabBtn-archive" onclick="switchTab('archive')" class="tab-btn-idle flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">
-        <span>⚖️</span><span>比較</span>
-      </button>
+    <!-- タブナビゲーション（全7タブ） -->
+    <nav class="bg-white rounded-2xl p-1 card-shadow border border-purple-100/80 flex flex-wrap items-center justify-between gap-1">
+      <div class="flex flex-wrap gap-1">
+        <button id="tabBtn-overview" onclick="switchTab('overview')" class="tab-btn-active flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">
+          <span>📊</span><span>年間推移</span>
+        </button>
+        <button id="tabBtn-calendar" onclick="switchTab('calendar')" class="tab-btn-idle flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">
+          <span>📅</span><span>カレンダー</span>
+        </button>
+        <button id="tabBtn-event" onclick="switchTab('event')" class="tab-btn-idle flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">
+          <span>🎪</span><span>イベント</span>
+        </button>
+        <button id="tabBtn-music" onclick="switchTab('music')" class="tab-btn-idle flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">
+          <span>🎵</span><span>動画・ショート</span>
+        </button>
+        <button id="tabBtn-streaming" onclick="switchTab('streaming')" class="tab-btn-idle flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">
+          <span>🎙️</span><span>雑談・配信</span>
+        </button>
+        <button id="tabBtn-singing" onclick="switchTab('singing')" class="tab-btn-idle flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">
+          <span>📝</span><span>歌枠＆セトリ</span>
+        </button>
+        <button id="tabBtn-archive" onclick="switchTab('archive')" class="tab-btn-idle flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">
+          <span>⚖️</span><span>比較</span>
+        </button>
+      </div>
+
+      <!-- 右側コントロール：ハイライト開閉ボタン＆操作ヒント -->
+      <div class="flex items-center gap-1 pr-1">
+        <button type="button" id="kpiToggleBtn" onclick="toggleKpiSection()" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-bold text-purple-700 bg-purple-50/70 hover:bg-purple-100 border border-purple-100 transition cursor-pointer" title="ハイライトカードの表示／非表示を切り替え">
+          <span>📌</span><span>ハイライト</span><span id="kpiToggleChevron" class="text-[9px] opacity-80">▲</span>
+        </button>
+
+        <!-- 操作ガイド（ホバー／クリックで表示） -->
+        <div id="guidePopoverWrap" class="relative group">
+          <button type="button" onclick="toggleGuidePopover(event)" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-bold text-slate-400 hover:text-purple-700 hover:bg-purple-50 transition cursor-pointer" aria-label="操作ヒント">
+            <span>❓</span><span class="hidden sm:inline">操作ヒント</span>
+          </button>
+          <div id="guidePopover" class="hidden group-hover:block absolute right-0 mt-1.5 w-72 bg-white border border-purple-200 rounded-2xl p-3 shadow-xl z-40 text-[11px] text-slate-600 space-y-1.5 leading-relaxed">
+            <div class="font-black text-slate-800 text-xs pb-1 border-b border-slate-100">💡 グラフ・一覧の操作ヒント</div>
+            <div>・<span class="font-bold text-purple-700">棒・円・ヒートマップをクリック</span>：該当データの詳細一覧を表示</div>
+            <div>・<span class="font-bold text-purple-700">凡例をクリック</span>：各年・種別の表示／非表示を切替</div>
+            <div>・<span class="font-bold text-purple-700">サマリーやランキング行をクリック</span>：内訳や歌唱履歴を表示</div>
+            <div>・<span class="font-bold text-purple-700">✏️ アイコン</span>：タイトル・種別・回数除外の手動編集</div>
+          </div>
+        </div>
+      </div>
     </nav>
 
     <!-- ===================================================================
          TAB 1: 📊 年間推移
          =================================================================== -->
-    <section id="tab-overview" class="space-y-3">
-      <div class="bg-white rounded-2xl px-3.5 py-2.5 card-shadow border border-purple-100/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-        <div>
-          <h2 class="text-sm font-black text-slate-800">📈 月別パフォーマンス推移</h2>
-          <p id="overviewModeDesc" class="text-[11px] text-slate-500">過去年レンジ帯（最小〜最大）と前年の比較表示（凡例で表示切替・棒クリックで詳細）</p>
-        </div>
+    <section id="tab-overview" class="space-y-4">
+      <div class="bg-white rounded-2xl px-4 py-2.5 card-shadow border border-purple-100/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <h2 class="text-sm font-black text-slate-800">📈 月別パフォーマンス推移</h2>
         <div class="inline-flex bg-purple-50 p-0.5 rounded-xl border border-purple-100 self-start sm:self-auto">
-          <button id="ovModeBtn-compare" onclick="setOverviewChartMode('compare')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-700 text-white shadow-sm transition cursor-pointer">過去年と比較</button>
-          <button id="ovModeBtn-cumulative" onclick="setOverviewChartMode('cumulative')" class="px-2.5 py-1 rounded-lg text-xs font-bold text-purple-800 hover:bg-purple-100 transition cursor-pointer">年間累計で表示</button>
+          <button id="ovModeBtn-compare" onclick="setOverviewChartMode('compare')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-700 text-white shadow-sm transition cursor-pointer" title="初期表示は対象年＋直近1年（凡例クリックで他の過去年も追加表示）">月別で表示</button>
+          <button id="ovModeBtn-cumulative" onclick="setOverviewChartMode('cumulative')" class="px-2.5 py-1 rounded-lg text-xs font-bold text-purple-800 hover:bg-purple-100 transition cursor-pointer" title="1月〜12月の年間累計推移（凡例クリックで他の過去年も追加表示）">年間累計で表示</button>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-          <div class="flex items-center justify-between mb-1.5">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-white rounded-2xl p-4 card-shadow border border-purple-100/80">
+          <div class="flex items-center justify-between mb-2">
             <h3 class="text-xs sm:text-sm font-black text-slate-800">⏱️ 月別 配信時間 (h)</h3>
             <span id="ovHoursBadge" class="text-[10px] font-bold font-mono px-2 py-0.5 rounded-full bg-purple-50 text-purple-700"></span>
           </div>
-          <div class="h-48"><canvas id="chartOvHours"></canvas></div>
+          <div class="h-60"><canvas id="chartOvHours"></canvas></div>
         </div>
 
-        <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-          <div class="flex items-center justify-between mb-1.5">
+        <div class="bg-white rounded-2xl p-4 card-shadow border border-purple-100/80">
+          <div class="flex items-center justify-between mb-2">
             <h3 class="text-xs sm:text-sm font-black text-slate-800">🎙️ 月別 配信回数 (回)</h3>
             <span id="ovStreamsBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700"></span>
           </div>
-          <div class="h-48"><canvas id="chartOvStreams"></canvas></div>
+          <div class="h-60"><canvas id="chartOvStreams"></canvas></div>
         </div>
 
-        <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-          <div class="flex items-center justify-between mb-1.5">
+        <div class="bg-white rounded-2xl p-4 card-shadow border border-purple-100/80">
+          <div class="flex items-center justify-between mb-2">
             <h3 class="text-xs sm:text-sm font-black text-slate-800">🎬 月別 Full動画投稿数 (本)</h3>
             <span id="ovFullBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-fuchsia-50 text-fuchsia-700"></span>
           </div>
-          <div class="h-48"><canvas id="chartOvFull"></canvas></div>
+          <div class="h-60"><canvas id="chartOvFull"></canvas></div>
         </div>
 
-        <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-          <div class="flex items-center justify-between mb-1.5">
+        <div class="bg-white rounded-2xl p-4 card-shadow border border-purple-100/80">
+          <div class="flex items-center justify-between mb-2">
             <h3 class="text-xs sm:text-sm font-black text-slate-800">🎤 月別 歌枠回数 (回)</h3>
             <span id="ovSingingBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-pink-50 text-pink-700"></span>
           </div>
-          <div class="h-48"><canvas id="chartOvSinging"></canvas></div>
+          <div class="h-60"><canvas id="chartOvSinging"></canvas></div>
         </div>
       </div>
     </section>
@@ -432,17 +581,15 @@
 
       <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
         <div class="md:col-span-5 bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-          <h3 class="text-xs sm:text-sm font-black text-slate-800 mb-0.5">🏷️ イベント種別内訳</h3>
-          <p class="text-[10px] text-slate-400 mb-1.5">凡例クリックで非表示・円クリックで詳細</p>
+          <h3 class="text-xs sm:text-sm font-black text-slate-800 mb-2">🏷️ イベント種別内訳</h3>
           <div class="h-48"><canvas id="chartEventType"></canvas></div>
         </div>
 
         <div class="md:col-span-7 bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-          <div class="flex items-center justify-between mb-0.5">
+          <div class="flex items-center justify-between mb-2">
             <h3 class="text-xs sm:text-sm font-black text-slate-800">📅 月別 イベント推移（種別別）</h3>
             <span id="badgeEventCount" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-pink-50 text-pink-700">0回</span>
           </div>
-          <p class="text-[10px] text-slate-400 mb-1.5">凡例クリックで非表示・棒クリックで詳細</p>
           <div class="h-48"><canvas id="chartEventMonthly"></canvas></div>
         </div>
       </div>
@@ -477,23 +624,21 @@
         <!-- 左カラム：Full動画 -->
         <div class="space-y-3">
           <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-            <div class="flex items-center justify-between gap-1 mb-0.5">
+            <div class="flex items-center justify-between gap-1 mb-2">
               <h3 class="text-xs sm:text-sm font-black text-slate-800">🎬 月別 Full動画投稿数</h3>
               <span id="fullMonthlySummary" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700">合計：0本</span>
             </div>
-            <p class="text-[10px] text-slate-400 mb-1.5">凡例クリックで非表示・棒クリックで詳細</p>
             <div class="h-44"><canvas id="chartFullMonthly"></canvas></div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-              <h3 class="text-xs font-black text-slate-800 mb-0.5">🎨 Full 種別内訳</h3>
-              <p class="text-[10px] text-slate-400 mb-1">凡例で非表示・円で詳細</p>
+              <h3 class="text-xs font-black text-slate-800 mb-2">🎨 Full 種別内訳</h3>
               <div class="h-44"><canvas id="chartFullType"></canvas></div>
             </div>
 
             <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-              <div class="flex flex-wrap items-center justify-between gap-1 mb-0.5">
+              <div class="flex flex-wrap items-center justify-between gap-1 mb-2">
                 <h3 class="text-xs font-black text-slate-800">✨ クレジット別</h3>
                 <div class="inline-flex bg-purple-50 p-0.5 rounded-lg text-[10px] font-bold">
                   <button id="crBtn-composer" onclick="switchCreditRanking('composer')" class="px-1.5 py-0.5 rounded-md bg-purple-700 text-white cursor-pointer">作曲</button>
@@ -502,7 +647,6 @@
                   <button id="crBtn-mix" onclick="switchCreditRanking('mix')" class="px-1.5 py-0.5 rounded-md text-purple-700 hover:bg-purple-100 cursor-pointer">MIX</button>
                 </div>
               </div>
-              <p class="text-[10px] text-slate-400 mb-1">凡例で非表示・円で詳細</p>
               <div class="grid grid-cols-12 gap-1.5 items-center h-40">
                 <div class="col-span-6 h-36"><canvas id="chartFullCredits"></canvas></div>
                 <div id="legendFullCredits" class="col-span-6 h-36 overflow-y-auto custom-scroll space-y-0.5 pr-0.5 text-[10px]"></div>
@@ -538,24 +682,21 @@
         <!-- 右カラム：Short動画 -->
         <div class="space-y-3">
           <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-            <div class="flex items-center justify-between gap-1 mb-0.5">
+            <div class="flex items-center justify-between gap-1 mb-2">
               <h3 class="text-xs sm:text-sm font-black text-slate-800">📱 月別 Short動画投稿数</h3>
               <span id="shortMonthlySummary" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-fuchsia-50 text-fuchsia-700">合計：0本</span>
             </div>
-            <p class="text-[10px] text-slate-400 mb-1.5">凡例クリックで非表示・棒クリックで詳細</p>
             <div class="h-44"><canvas id="chartShortMonthly"></canvas></div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-              <h3 class="text-xs font-black text-slate-800 mb-0.5">🏷️ Short カテゴリ内訳</h3>
-              <p class="text-[10px] text-slate-400 mb-1">凡例で非表示・円で詳細</p>
+              <h3 class="text-xs font-black text-slate-800 mb-2">🏷️ Short カテゴリ内訳</h3>
               <div class="h-44"><canvas id="chartShortType"></canvas></div>
             </div>
 
             <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-              <h3 class="text-xs font-black text-slate-800 mb-0.5">🎼 Short 作曲者別内訳</h3>
-              <p class="text-[10px] text-slate-400 mb-1">凡例で非表示・円で詳細</p>
+              <h3 class="text-xs font-black text-slate-800 mb-2">🎼 Short 作曲者別内訳</h3>
               <div class="grid grid-cols-12 gap-1.5 items-center h-40">
                 <div class="col-span-6 h-36"><canvas id="chartShortComposers"></canvas></div>
                 <div id="legendShortComposers" class="col-span-6 h-36 overflow-y-auto custom-scroll space-y-0.5 pr-0.5 text-[10px]"></div>
@@ -596,8 +737,7 @@
     <section id="tab-streaming" class="hidden space-y-3">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
         <div class="md:col-span-5 bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-          <h3 class="text-xs sm:text-sm font-black text-slate-800 mb-0.5">🏷️ 配信カテゴリ構成比</h3>
-          <p class="text-[10px] text-slate-400 mb-1.5">凡例クリックで非表示・円クリックで詳細一覧</p>
+          <h3 class="text-xs sm:text-sm font-black text-slate-800 mb-2">🏷️ 配信カテゴリ構成比</h3>
           <div class="grid grid-cols-12 gap-2 items-center h-48">
             <div class="col-span-6 h-44"><canvas id="chartStreamCat"></canvas></div>
             <div id="legendStreamCat" class="col-span-6 h-44 overflow-y-auto custom-scroll space-y-0.5 pr-1 text-[11px]"></div>
@@ -605,22 +745,18 @@
         </div>
 
         <div class="md:col-span-7 bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-          <div class="flex flex-wrap items-center justify-between gap-1 mb-0.5">
+          <div class="flex flex-wrap items-center justify-between gap-1 mb-2">
             <h3 class="text-xs sm:text-sm font-black text-slate-800">📊 月別 配信数推移（時間帯別）</h3>
             <span id="streamMonthlySummary" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700">合計：0回</span>
           </div>
-          <p class="text-[10px] text-slate-400 mb-1.5">凡例クリックで非表示・棒クリックで詳細一覧</p>
           <div class="h-48"><canvas id="chartStreamMonthly"></canvas></div>
         </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
         <div class="md:col-span-5 bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-          <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
-            <div>
-              <h3 class="text-xs sm:text-sm font-black text-slate-800">🔥 曜日 × 時間帯 配信ヒートマップ</h3>
-              <p class="text-[10px] text-slate-400">セルクリックで該当時間帯の配信一覧を表示</p>
-            </div>
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <h3 class="text-xs sm:text-sm font-black text-slate-800">🔥 曜日 × 時間帯 配信ヒートマップ</h3>
             <div class="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">
               <span>低</span>
               <span class="w-3 h-3 rounded-sm" style="background-color:rgba(147,51,234,0.16);"></span>
@@ -669,20 +805,18 @@
     <section id="tab-singing" class="hidden space-y-3">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-          <div class="flex items-center justify-between mb-0.5">
+          <div class="flex items-center justify-between mb-2">
             <h3 class="text-xs sm:text-sm font-black text-slate-800">🗓️ 月別 開催回数推移（種別別）</h3>
             <span id="setlistSessionsMonthlyBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700">合計 0回</span>
           </div>
-          <p class="text-[10px] text-slate-400 mb-1.5">凡例クリックで非表示・棒クリックで詳細</p>
           <div class="h-48"><canvas id="chartSetlistSessionsMonthly"></canvas></div>
         </div>
 
         <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-          <div class="flex items-center justify-between mb-0.5">
+          <div class="flex items-center justify-between mb-2">
             <h3 class="text-xs sm:text-sm font-black text-slate-800">📅 月別 歌唱曲数推移（種別別）</h3>
             <span id="setlistMonthlyBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-pink-50 text-pink-700">合計 0曲</span>
           </div>
-          <p class="text-[10px] text-slate-400 mb-1.5">凡例クリックで非表示・棒クリックで詳細</p>
           <div class="h-48"><canvas id="chartSetlistMonthly"></canvas></div>
         </div>
       </div>
@@ -697,7 +831,7 @@
           <button id="slScopeBtn-stream" onclick="setSetlistAnalyticsScope('stream')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-700 text-white shadow-sm transition cursor-pointer">🎙️ 歌枠（カラオケ含む）</button>
           <button id="slScopeBtn-live_all" onclick="setSetlistAnalyticsScope('live_all')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-purple-800 hover:bg-purple-100 transition cursor-pointer">🎸 LIVE（すべて）</button>
           <button id="slScopeBtn-live_solo" onclick="setSetlistAnalyticsScope('live_solo')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-pink-700 hover:bg-pink-100 transition cursor-pointer">🎸 LIVE (solo)</button>
-          <button id="slScopeBtn-live_comp" onclick="setSetlistAnalyticsScope('live_comp')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-cyan-700 hover:bg-cyan-100 transition cursor-pointer">🎸 LIVE (Comp)</button>
+          <button id="slScopeBtn-live_comp" onclick="setSetlistAnalyticsScope('live_comp')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-cyan-700 hover:bg-cyan-100 transition cursor-pointer">🎸 LIVE (Comp・Guest)</button>
           <button id="slScopeBtn-all" onclick="setSetlistAnalyticsScope('all')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-slate-600 hover:bg-slate-200/70 transition cursor-pointer">🎵 全種別</button>
         </div>
       </div>
@@ -705,29 +839,20 @@
       <!-- サマリー(50%) ＋ TOP10(50%) -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80 flex flex-col justify-between">
-          <div class="flex items-center justify-between mb-1.5">
-            <h3 id="setlistSummaryHeading" class="text-xs sm:text-sm font-black text-slate-800">📊 レパートリー＆初披露サマリー</h3>
-            <span class="text-[10px] text-slate-400">項目クリックで詳細一覧</span>
-          </div>
+          <h3 id="setlistSummaryHeading" class="text-xs sm:text-sm font-black text-slate-800 mb-2">📊 レパートリー＆初披露サマリー</h3>
           <div id="setlistSummaryCardWrap" class="space-y-2.5 flex-1 flex flex-col justify-between"></div>
         </div>
 
         <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-          <div class="flex items-center justify-between mb-0.5">
-            <h3 id="topSungHeading" class="text-xs sm:text-sm font-black text-slate-800">🌟 歌枠（カラオケ含む）最多歌唱曲ランキング TOP10</h3>
-            <span class="text-[10px] text-slate-400">同数は同率順位表示（行クリックで履歴）</span>
-          </div>
-          <div id="topSungTableWrap" class="max-h-60 overflow-y-auto custom-scroll mt-1.5"></div>
+          <h3 id="topSungHeading" class="text-xs sm:text-sm font-black text-slate-800 mb-2" title="同数は同率順位で表示・行クリックで歌唱履歴を表示">🌟 歌枠（カラオケ含む）最多歌唱曲ランキング TOP10</h3>
+          <div id="topSungTableWrap" class="max-h-60 overflow-y-auto custom-scroll mt-1"></div>
         </div>
       </div>
 
       <!-- セットリスト一覧 -->
       <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2">
-          <div>
-            <h3 id="setlistSectionTitle" class="text-xs sm:text-sm font-black text-slate-800">🎤 セットリスト一覧</h3>
-            <p class="text-[10px] text-slate-400">デフォルトは重複を除いた歌唱回数順（×N表示）です</p>
-          </div>
+          <h3 id="setlistSectionTitle" class="text-xs sm:text-sm font-black text-slate-800">🎤 セットリスト一覧</h3>
           <div class="flex flex-wrap items-center gap-1.5">
             <div class="inline-flex bg-purple-50 p-0.5 rounded-xl border border-purple-100">
               <button id="slModeBtn-unique" onclick="setSetlistMode('unique')" class="px-2 py-1 rounded-lg text-[11px] font-bold bg-purple-700 text-white shadow-sm transition cursor-pointer">重複を除く</button>
@@ -752,36 +877,13 @@
          TAB 6: ⚖️ 比較
          =================================================================== -->
     <section id="tab-archive" class="hidden space-y-3">
-      <!-- 通算サマリー（全年度合算） -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-        <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-          <div class="text-[11px] font-bold text-purple-600">📚 通算 配信回数（全年度）</div>
-          <div id="archTotalStreams" class="text-lg sm:text-xl font-black text-slate-900 mt-0.5">0回</div>
-        </div>
-        <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-          <div class="text-[11px] font-bold text-indigo-600">⏱️ 通算 配信時間（全年度）</div>
-          <div id="archTotalHours" class="text-lg sm:text-xl font-black text-slate-900 mt-0.5">0.0時間</div>
-        </div>
-        <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-          <div class="text-[11px] font-bold text-fuchsia-600">🎬 通算 Full動画（全年度）</div>
-          <div id="archTotalFull" class="text-lg sm:text-xl font-black text-slate-900 mt-0.5">0本</div>
-        </div>
-        <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-          <div class="text-[11px] font-bold text-pink-600">🎤 通算 歌枠回数（全年度）</div>
-          <div id="archTotalSinging" class="text-lg sm:text-xl font-black text-slate-900 mt-0.5">0回</div>
-        </div>
-      </div>
-
       <!-- 比較年度選択バー -->
       <div class="bg-white rounded-2xl px-3.5 py-2.5 card-shadow border border-purple-100/80 flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h3 class="text-xs sm:text-sm font-black text-slate-800">⚖️ 比較する年度を選択（2020年〜）</h3>
-          <p class="text-[10px] text-slate-400">選んだ2か年（または対象年 vs 過去平均）が下の月別比較・レーダーチャート・活動スタイル変化すべてに連動します</p>
-        </div>
+        <h3 class="text-xs sm:text-sm font-black text-slate-800">⚖️ 比較する年度を選択（2020年〜）</h3>
         <div class="flex flex-wrap items-center gap-1.5 text-xs">
-          <select id="cmpYearA" onchange="renderArchiveComparison()" class="px-2.5 py-1.5 rounded-xl border border-purple-200 font-bold text-purple-900 bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-300 cursor-pointer"></select>
+          <select id="cmpYearA" onchange="renderArchiveComparison()" class="w-44 px-2.5 py-1.5 rounded-xl border border-purple-200 font-bold text-purple-900 bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-300 cursor-pointer"></select>
           <span class="font-black text-slate-400 px-0.5">vs</span>
-          <select id="cmpYearB" onchange="renderArchiveComparison()" class="px-2.5 py-1.5 rounded-xl border border-sky-200 font-bold text-sky-900 bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-300 cursor-pointer"></select>
+          <select id="cmpYearB" onchange="renderArchiveComparison()" class="w-44 px-2.5 py-1.5 rounded-xl border border-sky-200 font-bold text-sky-900 bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-300 cursor-pointer"></select>
         </div>
       </div>
 
@@ -789,10 +891,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80 space-y-2">
           <div class="flex flex-wrap items-center justify-between gap-1.5">
-            <div>
-              <h3 class="text-xs sm:text-sm font-black text-slate-800">📊 月別 指標比較</h3>
-              <p class="text-[10px] text-slate-400">選択した2か年（または過去平均）の月別比較（棒クリックで詳細）</p>
-            </div>
+            <h3 class="text-xs sm:text-sm font-black text-slate-800">📊 月別 指標比較</h3>
             <select id="cmpMetric" onchange="renderArchiveComparison()" class="px-2 py-1 rounded-lg border border-slate-200 text-[11px] font-bold text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-purple-300 cursor-pointer">
               <option value="hours">配信時間 (h)</option>
               <option value="streams">配信回数 (回)</option>
@@ -809,10 +908,7 @@
 
         <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80 space-y-2">
           <div class="flex flex-wrap items-center justify-between gap-1.5">
-            <div>
-              <h3 class="text-xs sm:text-sm font-black text-slate-800">🕸️ 活動バランス比較（6軸レーダーチャート）</h3>
-              <p id="radarModeDesc" class="text-[10px] text-slate-400">各軸の過去最大値＝100点基準でスコア化（ホバーで実数値を表示）</p>
-            </div>
+            <h3 class="text-xs sm:text-sm font-black text-slate-800" title="各軸の最大値＝100点基準でスコア化（ホバーで実数値を表示）">🕸️ 活動バランス比較（6軸レーダーチャート）</h3>
             <div class="inline-flex bg-purple-50 p-0.5 rounded-lg border border-purple-100 text-[10px] font-bold">
               <button id="radarScaleBtn-all" onclick="setRadarScaleMode('all')" class="px-2 py-0.5 rounded-md bg-purple-700 text-white shadow-sm transition cursor-pointer">過去最大</button>
               <button id="radarScaleBtn-pair" onclick="setRadarScaleMode('pair')" class="px-2 py-0.5 rounded-md text-purple-800 hover:bg-purple-100 transition cursor-pointer">2か年の最大</button>
@@ -825,10 +921,7 @@
       <!-- 下段：活動スタイル変化（実数比較＆2020年〜推移・横並び） -->
       <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80 space-y-2.5">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div>
-            <h3 class="text-xs sm:text-sm font-black text-slate-800">🔄 活動スタイル変化（実数比較）</h3>
-            <p id="styleShiftDesc" class="text-[10px] text-slate-400">時間帯シフト：朝・昼・夕方・夜・深夜の配信回数変化（棒クリックで詳細一覧）</p>
-          </div>
+          <h3 class="text-xs sm:text-sm font-black text-slate-800">🔄 活動スタイル変化（実数比較）</h3>
           <div class="flex flex-wrap items-center gap-1 bg-purple-50/80 p-1 rounded-xl border border-purple-100 text-[11px] font-bold">
             <button id="styleBtn-time" onclick="setStyleShiftMode('time')" class="px-2.5 py-1 rounded-lg bg-purple-700 text-white shadow-sm transition cursor-pointer">🕐 時間帯</button>
             <button id="styleBtn-streamCat" onclick="setStyleShiftMode('streamCat')" class="px-2.5 py-1 rounded-lg text-purple-800 hover:bg-purple-100 transition cursor-pointer">🎙️ 配信カテゴリ</button>
@@ -851,11 +944,85 @@
           <div class="bg-slate-50/70 rounded-xl p-2.5 border border-slate-100">
             <div class="flex items-center justify-between mb-1.5">
               <span class="text-[11px] font-black text-slate-700">📊 年別 実数推移（2020年〜）</span>
-              <span class="text-[10px] text-slate-400">実数（回数・件数・本数）の変化トレンド</span>
             </div>
             <div class="h-64"><canvas id="chartStyleYearlyTrend"></canvas></div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         TAB 7: 📅 自動連携カレンダー（年間／月間切替＋フィルター）
+         =================================================================== -->
+    <section id="tab-calendar" class="hidden space-y-3">
+      <!-- コントロールバー -->
+      <div class="bg-white rounded-2xl px-3.5 py-2.5 card-shadow border border-purple-100/80">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <!-- 左〜中央：タイトル・年度切替・表示モード切替・統合月選択ピルバー -->
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-sm font-black text-slate-800 mr-0.5 whitespace-nowrap">📅 活動カレンダー</h2>
+
+            <!-- 年切り替え -->
+            <div class="inline-flex items-center gap-0.5 bg-purple-50 px-1 py-0.5 rounded-xl border border-purple-100">
+              <button type="button" onclick="autoCalChangeYear(-1)" class="w-6 h-6 rounded-lg hover:bg-purple-100 text-purple-800 font-bold text-xs flex items-center justify-center transition cursor-pointer" title="前年へ">◀</button>
+              <span id="autoCalYearLabel" class="text-xs sm:text-sm font-black text-purple-900 px-1.5 min-w-[56px] text-center whitespace-nowrap">2026年</span>
+              <button type="button" onclick="autoCalChangeYear(1)" class="w-6 h-6 rounded-lg hover:bg-purple-100 text-purple-800 font-bold text-xs flex items-center justify-center transition cursor-pointer" title="翌年へ">▶</button>
+            </div>
+
+            <!-- 月間 / 年間 切り替え -->
+            <div class="inline-flex bg-purple-50 p-0.5 rounded-xl border border-purple-100">
+              <button type="button" id="autoCalViewBtn-month" onclick="setAutoCalViewMode('month')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-700 text-white shadow-sm transition cursor-pointer whitespace-nowrap">月間表示</button>
+              <button type="button" id="autoCalViewBtn-year" onclick="setAutoCalViewMode('year')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-purple-800 hover:bg-purple-100 transition cursor-pointer whitespace-nowrap">年間表示</button>
+            </div>
+
+            <!-- 統合月選択ピルバー（月間表示時のみ表示：◀ 1月〜12月 ▶） -->
+            <div id="calMonthNavWrap" class="hidden inline-flex items-center gap-0.5 bg-purple-50 px-1 py-0.5 rounded-xl border border-purple-100 max-w-full overflow-x-auto custom-scroll">
+              <button type="button" onclick="autoCalChangeMonth(-1)" class="w-5 h-5 rounded-md hover:bg-purple-100 text-purple-800 font-bold text-[10px] flex items-center justify-center shrink-0 transition cursor-pointer" title="前月へ">◀</button>
+              <div id="autoCalMonthPills" class="inline-flex items-center gap-0.5"></div>
+              <button type="button" onclick="autoCalChangeMonth(1)" class="w-5 h-5 rounded-md hover:bg-purple-100 text-purple-800 font-bold text-[10px] flex items-center justify-center shrink-0 transition cursor-pointer" title="翌月へ">▶</button>
+            </div>
+          </div>
+
+          <!-- 右側：件数バッジ＆フィルター開閉 -->
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span id="autoCalCountBadge" class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-100 whitespace-nowrap">0件</span>
+            <button type="button" id="autoCalFilterToggleBtn" onclick="toggleAutoCalFilterPanel()" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border border-purple-200 bg-white hover:bg-purple-50 text-xs font-bold text-purple-800 transition cursor-pointer whitespace-nowrap">
+              <span>🔍</span><span id="autoCalFilterBtnText">フィルター</span><span id="autoCalFilterChevron" class="text-[9px] opacity-70">▼</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 開閉式フィルターパネル -->
+        <div id="autoCalFilterPanel" class="hidden mt-2.5 pt-2.5 border-t border-slate-100 space-y-2.5">
+          <!-- クイック操作＆検索 -->
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class="text-[11px] font-bold text-slate-500">クイック切替：</span>
+              <button type="button" onclick="autoCalApplyPreset('all')" class="px-2 py-0.5 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 text-[11px] font-bold border border-purple-200 transition cursor-pointer">すべてON</button>
+              <button type="button" onclick="autoCalApplyPreset('none')" class="px-2 py-0.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-600 text-[11px] font-bold border border-slate-200 transition cursor-pointer">すべてOFF</button>
+              <button type="button" onclick="autoCalApplyPreset('no_chat')" class="px-2 py-0.5 rounded-lg bg-indigo-50 hover:bg-purple-100 text-indigo-700 text-[11px] font-bold border border-purple-200 transition cursor-pointer">雑談以外</button>
+              <button type="button" onclick="autoCalApplyPreset('works_events')" class="px-2 py-0.5 rounded-lg bg-fuchsia-50 hover:bg-fuchsia-100 text-fuchsia-700 text-[11px] font-bold border border-purple-200 transition cursor-pointer">動画・イベントのみ</button>
+            </div>
+            <input id="autoCalSearchInput" type="text" oninput="renderAutoCalBody()" placeholder="タイトル検索..." class="px-2.5 py-1 rounded-xl border border-purple-200 text-[11px] focus:outline-none focus:ring-2 focus:ring-purple-300 w-40 sm:w-48" />
+          </div>
+
+          <!-- 大分類フィルター（Song / Short / Ivent / Streaming） -->
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="text-[11px] font-bold text-slate-500 mr-1">種別：</span>
+            <div id="autoCalSourceFilters" class="flex flex-wrap gap-1.5"></div>
+          </div>
+
+          <!-- 配信タグ別フィルター -->
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="text-[11px] font-bold text-slate-500 mr-1">配信タグ：</span>
+            <div id="autoCalStreamTagFilters" class="flex flex-wrap gap-1.5"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- カレンダー本体 -->
+      <div class="bg-white rounded-2xl card-shadow border border-purple-100/80 overflow-hidden">
+        <div id="autoCalBodyContainer" class="overflow-auto custom-scroll max-h-[75vh] relative"></div>
       </div>
     </section>
 
@@ -1034,6 +1201,7 @@
       'LIVE': '#ec4899',
       'LIVE (solo)': '#ec4899',
       'LIVE (Comp)': '#06b6d4',
+      'LIVE (Guest)': '#3b82f6',
       'ライブ': '#ec4899',
       'カラオケ': '#f59e0b',
       '弾き語り': '#10b981',
@@ -1098,6 +1266,7 @@
       const normalized = s.replace(/（/g, '(').replace(/）/g, ')').replace(/\s+/g, ' ').trim();
       if (/live|ライブ/i.test(normalized)) {
         if (/solo|ソロ/i.test(normalized)) return 'LIVE (solo)';
+        if (/guest|ゲスト/i.test(normalized)) return 'LIVE (Guest)';
         if (/comp|コンピ|コラボ|対バン/i.test(normalized)) return 'LIVE (Comp)';
         if (/^live$/i.test(normalized)) return 'LIVE';
       }
@@ -1108,6 +1277,7 @@
       const k = normalizeSetlistType(type);
       if (FIXED_SETLIST_TYPE_COLORS[k]) return FIXED_SETLIST_TYPE_COLORS[k];
       if (/live|ライブ/i.test(k)) {
+        if (/guest/i.test(k)) return '#3b82f6';
         if (/comp/i.test(k)) return '#06b6d4';
         return '#ec4899';
       }
@@ -1117,18 +1287,37 @@
       return hashColor(k);
     }
 
+    function isSetlistRowExcluded(row) {
+      if (!row) return true;
+      if (row.isExcluded) return true;
+      const fullText = `${row.type || ''} ${row.streamTitle || ''} ${row.title || ''}`;
+      return /接続エラー/i.test(fullText);
+    }
+
+    function isFullVideoExcluded(v) {
+      if (!v) return true;
+      if (typeof v.isExcluded === 'boolean') return v.isExcluded;
+      const comp = String(v.composer || '').trim();
+      return comp === '' || comp === '-' || comp === '－';
+    }
+
+    function renderExcludedTitleHtml(title, isExcluded, reasonLabel = '回数除外') {
+      if (!isExcluded) {
+        return `<span class="font-bold text-slate-800">${escapeHtml(title)}</span>`;
+      }
+      return `<span class="line-through text-slate-400">${escapeHtml(title)}</span> <span class="text-[9px] text-rose-500 font-semibold whitespace-nowrap">(${escapeHtml(reasonLabel)})</span>`;
+    }
+
     function matchesSetlistScope(row, scope) {
-      if (!row) return false;
+      if (!row || isSetlistRowExcluded(row)) return false;
       const type = normalizeSetlistType(row.type || '歌枠');
-      const fullText = `${type} ${row.streamTitle || ''}`;
-      if (/接続エラー/i.test(fullText)) return false;
 
       const isLive = /live|ライブ/i.test(type);
       if (scope === 'all') return true;
       if (scope === 'stream') return !isLive;
       if (scope === 'live_all') return isLive;
       if (scope === 'live_solo') return isLive && /solo|ソロ/i.test(type);
-      if (scope === 'live_comp') return isLive && /comp|コンピ/i.test(type);
+      if (scope === 'live_comp') return isLive && /comp|コンピ|guest|ゲスト/i.test(type);
       return true;
     }
 
@@ -1137,7 +1326,7 @@
         stream:    { label: '歌枠（カラオケ含む）', short: '歌枠・カラオケ', color: '#9333ea' },
         live_all:  { label: 'LIVE（すべて）',       short: 'LIVE',          color: '#ec4899' },
         live_solo: { label: 'LIVE (solo)',         short: 'LIVE (solo)',   color: '#ec4899' },
-        live_comp: { label: 'LIVE (Comp)',         short: 'LIVE (Comp)',   color: '#06b6d4' },
+        live_comp: { label: 'LIVE (Comp・Guest)',  short: 'LIVE (Comp・Guest)', color: '#06b6d4' },
         all:       { label: '全種別',              short: '全種別',         color: '#6366f1' }
       };
       return map[scope] || map.stream;
@@ -1237,7 +1426,7 @@
     // =========================================================================
     const centerTextPlugin = {
       id: 'centerText',
-      afterDraw(chart, args, opts) {
+      beforeDatasetsDraw(chart, args, opts) {
         try {
           if (!opts || !opts.label) return;
           const ds = chart.data.datasets[0];
@@ -1322,7 +1511,40 @@
       }
     };
 
-    Chart.register(centerTextPlugin, barTotalPlugin);
+    const barCenterLabelPlugin = {
+      id: 'barCenterLabel',
+      afterDatasetsDraw(chart, args, opts) {
+        try {
+          if (!opts || !opts.enabled) return;
+          const { ctx, data } = chart;
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle = '#ffffff';
+          ctx.shadowColor = 'rgba(15, 23, 42, 0.45)';
+          ctx.shadowBlur = 3;
+
+          data.datasets.forEach((ds, dsIdx) => {
+            const meta = chart.getDatasetMeta(dsIdx);
+            if (meta.hidden || meta.type !== 'bar') return;
+            meta.data.forEach((barEl, i) => {
+              const val = Number(ds.data[i]) || 0;
+              if (!barEl || val <= 0) return;
+              const barHeight = Math.abs(barEl.base - barEl.y);
+              if (barHeight < 13) return;
+              const centerY = (barEl.y + barEl.base) / 2;
+              const fontSize = barHeight < 18 ? 8.5 : 10;
+              ctx.font = `800 ${fontSize}px "Inter", "Noto Sans JP", sans-serif`;
+              const textVal = opts.fixed1 ? val.toFixed(1) : String(Math.round(val * 10) / 10);
+              ctx.fillText(textVal, barEl.x, centerY);
+            });
+          });
+          ctx.restore();
+        } catch (e) {}
+      }
+    };
+
+    Chart.register(centerTextPlugin, barTotalPlugin, barCenterLabelPlugin);
 
     const chartInstances = {};
     function createChart(key, canvasId, config) {
@@ -1334,7 +1556,6 @@
         const canvas = document.getElementById(canvasId);
         if (!canvas) return null;
 
-        // ダークモード時は全チャートの文字色・グリッド線・ドーナツ境界線を自動補正
         if (isDarkMode() && config) {
           const tickColor = '#cbd5e1';
           const gridColor = '#2a2342';
@@ -1467,7 +1688,26 @@
               mix: sampleMix[(m + i) % sampleMix.length],
               movie: sampleMovie[(m + i) % sampleMovie.length],
               vocal: tp === 'Collab' ? '雪見, ゲスト' : '雪見',
-              platform: 'YouTube'
+              platform: 'YouTube',
+              isExcluded: false
+            });
+          }
+
+          if (m === 4) {
+            fullVideos.push({
+              _uid: makeUid('fv'),
+              year: y, month: m, day: 8,
+              dateStr: `${y}/04/08`,
+              sortKey: `${y}0408`,
+              title: `"untransparent" Live Documentary`,
+              type: 'Live action',
+              composer: '',
+              illustrator: '',
+              mix: '',
+              movie: '動画師P',
+              vocal: '雪見',
+              platform: 'YouTube',
+              isExcluded: true
             });
           }
 
@@ -1496,10 +1736,10 @@
             const slSessions = [
               { type: '歌枠', day: 5, title: `${y}年${m}月 歌枠 #1`, cnt: 5 },
               {
-                type: m % 4 === 0 ? 'LIVE (solo)' : (m % 4 === 2 ? 'LIVE (Comp)' : 'カラオケ'),
+                type: m % 4 === 0 ? 'LIVE (solo)' : (m % 4 === 2 ? 'LIVE (Comp)' : (m % 4 === 3 ? 'LIVE (Guest)' : 'カラオケ')),
                 day: 18,
-                title: `${y}年${m}月 ${m % 4 === 0 ? 'ワンマンLIVE' : (m % 4 === 2 ? '対バンLIVE' : 'カラオケ枠')}`,
-                cnt: m % 4 === 0 ? 10 : (m % 4 === 2 ? 5 : 4)
+                title: `${y}年${m}月 ${m % 4 === 0 ? 'ワンマンLIVE' : (m % 4 === 2 ? '対バンLIVE' : (m % 4 === 3 ? 'ゲスト出演LIVE' : 'カラオケ枠'))}`,
+                cnt: m % 4 === 0 ? 10 : (m % 4 === 2 ? 5 : (m % 4 === 3 ? 3 : 4))
               }
             ];
             const mm = String(m).padStart(2, '0');
@@ -1515,7 +1755,7 @@
                   streamTitle: sess.title,
                   type: sess.type,
                   title: song,
-                  url: 'https://www.youtube.com/'
+                  url: ''
                 });
               }
             });
@@ -1592,7 +1832,10 @@
             isSample: false,
             loadedFlags: parsed.loadedFlags || { streaming: true, song: true, short: true, setlist: true, event: true },
             streams: parsed.streams || [],
-            fullVideos: parsed.fullVideos || [],
+            fullVideos: (parsed.fullVideos || []).map(v => ({
+              ...v,
+              isExcluded: typeof v.isExcluded === 'boolean' ? v.isExcluded : isFullVideoExcluded(v)
+            })),
             shortVideos: parsed.shortVideos || [],
             setlist: (parsed.setlist || []).map(r => ({ ...r, type: normalizeSetlistType(r.type) })),
             events: parsed.events || []
@@ -1672,6 +1915,28 @@
       });
     }
 
+    function getCellDisplayText(ws, rIdx, cIdx, fallbackVal) {
+      if (ws && typeof XLSX !== 'undefined') {
+        const cellRef = XLSX.utils.encode_cell({ r: rIdx, c: cIdx });
+        const cell = ws[cellRef];
+        if (cell) {
+          if (typeof cell.w === 'string' && cell.w.trim() !== '') {
+            if (cell.t === 'n' && cell.z && /[ymd]/i.test(cell.z) && !/[hHsS]/.test(cell.z)) {
+              const parsed = XLSX.SSF ? XLSX.SSF.parse_date_code(cell.v) : null;
+              if (parsed) {
+                const hasYear = /y/i.test(cell.z);
+                if (!hasYear) return `${parsed.m}/${parsed.d}`;
+                return `${parsed.y}/${String(parsed.m).padStart(2, '0')}/${String(parsed.d).padStart(2, '0')}`;
+              }
+            }
+            return cell.w.trim();
+          }
+          if (cell.v != null) return String(cell.v).trim();
+        }
+      }
+      return fallbackVal == null ? '' : String(fallbackVal).trim();
+    }
+
     function parseFlexibleDate(val) {
       if (val == null || val === '') return null;
       if (val instanceof Date && !isNaN(val.getTime())) {
@@ -1714,29 +1979,6 @@
       return 0;
     }
 
-    // セルの表示文字列を安全に取得する（「11/20 → 46346」等の日付シリアル値変換を防止）
-    function getCellDisplayText(ws, rowIdx, colIdx, fallbackVal) {
-      if (ws) {
-        const cellRef = XLSX.utils.encode_cell({ r: rowIdx, c: colIdx });
-        const cell = ws[cellRef];
-        if (cell) {
-          if (cell.w != null && String(cell.w).trim() !== '') {
-            return String(cell.w).trim();
-          }
-          if (cell.t === 'n' && typeof cell.v === 'number' && cell.z && /[mdy]/i.test(String(cell.z))) {
-            const d = new Date(Math.round((cell.v - 25569) * 86400 * 1000));
-            if (!isNaN(d.getTime())) {
-              const y = d.getUTCFullYear();
-              const m = d.getUTCMonth() + 1;
-              const day = d.getUTCDate();
-              return /y/i.test(String(cell.z)) ? `${y}/${m}/${day}` : `${m}/${day}`;
-            }
-          }
-        }
-      }
-      return String(fallbackVal == null ? '' : fallbackVal).trim();
-    }
-
     async function handleFilesSelected(fileList) {
       const files = Array.from(fileList || []);
       if (!files.length) return;
@@ -1767,7 +2009,10 @@
                 isSample: false,
                 loadedFlags: parsed.loadedFlags || { streaming: true, song: true, short: true, setlist: true, event: true },
                 streams: parsed.streams || [],
-                fullVideos: parsed.fullVideos || [],
+                fullVideos: (parsed.fullVideos || []).map(v => ({
+                  ...v,
+                  isExcluded: typeof v.isExcluded === 'boolean' ? v.isExcluded : isFullVideoExcluded(v)
+                })),
                 shortVideos: parsed.shortVideos || [],
                 setlist: (parsed.setlist || []).map(r => ({ ...r, type: normalizeSetlistType(r.type) })),
                 events: parsed.events || []
@@ -1778,12 +2023,17 @@
             continue;
           }
 
-          const buf = await file.arrayBuffer();
-          const isCsv = fname.endsWith('.csv');
-          const wb = XLSX.read(buf, isCsv ? { type: 'array', raw: true } : { type: 'array', cellDates: false });
+          let wb;
+          if (fname.endsWith('.csv')) {
+            const text = await file.text();
+            wb = XLSX.read(text, { type: 'string', raw: true });
+          } else {
+            const buf = await file.arrayBuffer();
+            wb = XLSX.read(buf, { type: 'array', cellDates: false });
+          }
           const sheetName = wb.SheetNames[0];
           const ws = wb.Sheets[sheetName];
-          const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+          const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: true });
           if (rows.length < 2) continue;
 
           if (/stream/i.test(fname)) {
@@ -1851,10 +2101,10 @@
         const dt = parseFlexibleDate(r[1]);
         if (!dt) continue;
         const title = getCellDisplayText(ws, i, 0, r[0]) || '(無題)';
-        const errFlag = getCellDisplayText(ws, i, 2, r[2]);
+        const errFlag = String(r[2] || '').trim();
         const isError = errFlag !== '' && !/^(0|false|no|なし|-)$/i.test(errFlag);
         const seconds = parseDurationSeconds(r[7]);
-        const tags = splitMultiValues(getCellDisplayText(ws, i, 8, r[8]));
+        const tags = splitMultiValues(r[8]);
         const mm = String(dt.month).padStart(2, '0');
         const dd = String(dt.day).padStart(2, '0');
         const hh = String(dt.hour).padStart(2, '0');
@@ -1879,13 +2129,14 @@
       const list = [];
       for (let i = 1; i < rows.length; i++) {
         const r = rows[i];
-        if (!r) continue;
+        if (!r || !r[0]) continue;
         const title = getCellDisplayText(ws, i, 0, r[0]);
-        if (!title) continue;
-        const type = getCellDisplayText(ws, i, 21, r[21]) || 'Solo';
+        const type = String(r[21] || 'Solo').trim() || 'Solo';
         if (/xfd|announce/i.test(`${title} ${type}`)) continue;
         const dt = parseFlexibleDate(r[16]);
         if (!dt) continue;
+        const composer = String(r[9] || '').trim();
+        const isNoComposer = composer === '' || composer === '-' || composer === '－';
         const mm = String(dt.month).padStart(2, '0');
         const dd = String(dt.day).padStart(2, '0');
         list.push({
@@ -1894,13 +2145,14 @@
           dateStr: `${dt.year}/${mm}/${dd}`,
           sortKey: `${dt.year}${mm}${dd}`,
           title,
-          illustrator: getCellDisplayText(ws, i, 6, r[6]),
-          mix: getCellDisplayText(ws, i, 7, r[7]),
-          movie: getCellDisplayText(ws, i, 8, r[8]),
-          composer: getCellDisplayText(ws, i, 9, r[9]),
-          vocal: getCellDisplayText(ws, i, 10, r[10]) || '雪見',
-          platform: getCellDisplayText(ws, i, 14, r[14]) || 'YouTube',
-          type
+          illustrator: String(r[6] || '').trim(),
+          mix: String(r[7] || '').trim(),
+          movie: String(r[8] || '').trim(),
+          composer,
+          vocal: String(r[10] || '雪見').trim(),
+          platform: String(r[14] || 'YouTube').trim(),
+          type,
+          isExcluded: isNoComposer
         });
       }
       return list;
@@ -1910,16 +2162,15 @@
       const list = [];
       for (let i = 1; i < rows.length; i++) {
         const r = rows[i];
-        if (!r) continue;
+        if (!r || !r[0]) continue;
         const title = getCellDisplayText(ws, i, 0, r[0]);
-        if (!title) continue;
         if (/xfd|announce/i.test(title)) continue;
         const dt = parseFlexibleDate(r[7]);
         if (!dt) continue;
-        const platform = getCellDisplayText(ws, i, 5, r[5]);
+        const platform = String(r[5] || '').trim();
         const plats = splitMultiValues(platform).map(p => p.toLowerCase());
         const isXOnly = plats.length > 0 && plats.every(p => p === 'x' || p === 'twitter' || p === 'x(twitter)');
-        const hasFullRel = getCellDisplayText(ws, i, 10, r[10]) !== '';
+        const hasFullRel = String(r[10] || '').trim() !== '';
         const mm = String(dt.month).padStart(2, '0');
         const dd = String(dt.day).padStart(2, '0');
         list.push({
@@ -1928,7 +2179,7 @@
           dateStr: `${dt.year}/${mm}/${dd}`,
           sortKey: `${dt.year}${mm}${dd}`,
           title,
-          composer: getCellDisplayText(ws, i, 3, r[3]),
+          composer: String(r[3] || '').trim(),
           platform: platform || 'YouTube',
           category: hasFullRel ? 'Full関連' : 'Shortのみ',
           isExcluded: isXOnly
@@ -1941,25 +2192,13 @@
       const list = [];
       for (let i = 1; i < rows.length; i++) {
         const r = rows[i];
-        if (!r) continue;
-        const rawTitle = getCellDisplayText(ws, i, 0, r[0]);
-        const rawSongs = getCellDisplayText(ws, i, 3, r[3]);
-        if (!rawTitle && !rawSongs) continue;
+        if (!r || (!r[0] && !r[3])) continue;
         const dt = parseFlexibleDate(r[1]);
         if (!dt) continue;
-        const streamTitle = rawTitle || '(無題)';
-        const type = normalizeSetlistType(getCellDisplayText(ws, i, 2, r[2]) || '歌枠');
+        const streamTitle = getCellDisplayText(ws, i, 0, r[0]) || '(無題)';
+        const type = normalizeSetlistType(r[2] || '歌枠');
+        const rawSongs = getCellDisplayText(ws, i, 3, r[3]);
         if (!rawSongs) continue;
-        let url = getCellDisplayText(ws, i, 4, r[4]);
-        if (ws) {
-          const cellRef = XLSX.utils.encode_cell({ r: i, c: 4 });
-          const cell = ws[cellRef];
-          if (cell && cell.l && cell.l.Target) url = cell.l.Target;
-        }
-        if (url && !/^https?:\/\//i.test(url)) {
-          const mUrl = url.match(/https?:\/\/[^\s)]+/i);
-          url = mUrl ? mUrl[0] : '';
-        }
         const songs = rawSongs.split(/[\r\n,]+/).map(s => s.trim()).filter(Boolean);
         const mm = String(dt.month).padStart(2, '0');
         const dd = String(dt.day).padStart(2, '0');
@@ -1972,7 +2211,7 @@
             streamTitle,
             type,
             title: songTitle,
-            url
+            url: ''
           });
         });
       }
@@ -1983,11 +2222,10 @@
       const list = [];
       for (let i = 1; i < rows.length; i++) {
         const r = rows[i];
-        if (!r) continue;
+        if (!r || !r[0]) continue;
         const title = getCellDisplayText(ws, i, 0, r[0]);
-        if (!title) continue;
-        const type = getCellDisplayText(ws, i, 1, r[1]) || 'その他';
-        if (/record|release/i.test(`${title} ${type}`)) continue;
+        const type = String(r[1] || 'その他').trim();
+        if (/^(record|release)$/i.test(type)) continue;
         const dt = parseFlexibleDate(r[3]);
         if (!dt) continue;
         const mm = String(dt.month).padStart(2, '0');
@@ -2006,10 +2244,6 @@
     }
 
     function updateLoadedStatusUI() {
-      const badge = document.getElementById('dataSourceBadge');
-      if (badge) {
-        badge.textContent = appData.isSample ? 'サンプルデータ表示中' : '実測データ（自動保存ON）';
-      }
       const statusEl = document.getElementById('loadedFilesStatus');
       if (statusEl) {
         const items = [
@@ -2080,6 +2314,9 @@
 
     function onYearFilterChange() {
       selectedYear = document.getElementById('yearFilterSelect').value;
+      if (selectedYear !== 'all') {
+        autoCalYear = Number(selectedYear) || autoCalYear;
+      }
       renderAll();
     }
 
@@ -2109,7 +2346,7 @@
     // =========================================================================
     function switchTab(tabId) {
       activeTab = tabId;
-      const tabs = ['overview', 'event', 'music', 'streaming', 'singing', 'archive'];
+      const tabs = ['overview', 'event', 'music', 'streaming', 'singing', 'archive', 'calendar'];
       tabs.forEach(t => {
         const sec = document.getElementById(`tab-${t}`);
         const btn = document.getElementById(`tabBtn-${t}`);
@@ -2126,7 +2363,7 @@
     function renderAll() {
       const titleEl = document.getElementById('reportTitle');
       if (titleEl) {
-        titleEl.textContent = selectedYear === 'all' ? '雪見 全期間 活動レポート' : `雪見 ${selectedYear}年 活動レポート`;
+        titleEl.textContent = selectedYear === 'all' ? '全期間 活動レポート' : `${selectedYear}年 活動レポート`;
       }
       renderTopKPIs();
       renderActiveTab();
@@ -2140,6 +2377,7 @@
         else if (activeTab === 'streaming') renderStreamingSection();
         else if (activeTab === 'singing') renderSingingSection();
         else if (activeTab === 'archive') renderArchiveSection();
+        else if (activeTab === 'calendar') renderAutoCalendarSection();
       } catch (e) {
         console.error('Render error in tab:', activeTab, e);
       }
@@ -2152,10 +2390,10 @@
       const streams = filterBySelectedYear(appData.streams);
       const validStreams = streams.filter(s => !s.isError);
       const totalSec = streams.reduce((a, b) => a + getStreamSeconds(b), 0);
-      const fulls = filterBySelectedYear(appData.fullVideos);
+      const fulls = filterBySelectedYear(appData.fullVideos).filter(v => !isFullVideoExcluded(v));
       const shorts = filterBySelectedYear(appData.shortVideos).filter(s => !s.isExcluded);
       const singingStreams = streams.filter(isSingingStream);
-      const setlists = filterBySelectedYear(appData.setlist);
+      const setlists = filterBySelectedYear(appData.setlist).filter(r => !isSetlistRowExcluded(r));
       const events = filterBySelectedYear(appData.events);
 
       const mDiv = getActiveMonthDivisor(streams, fulls, shorts, setlists, events);
@@ -2197,18 +2435,47 @@
         const tp = String(e.type || '').trim() || 'その他';
         evTypeCounts[tp] = (evTypeCounts[tp] || 0) + 1;
       });
-      const evTypeBreakdown = Object.entries(evTypeCounts)
-        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'ja'))
+      const evBreakdownText = Object.entries(evTypeCounts)
+        .sort((a, b) => b[1] - a[1])
         .map(([tp, cnt]) => `${tp} ${cnt}`)
         .join(' / ');
       const evBrk = document.getElementById('kpiEventsBreakdown');
-      evBrk.textContent = evTypeBreakdown || '内訳：-';
-      evBrk.title = evBrk.textContent;
+      evBrk.textContent = events.length ? evBreakdownText : '内訳：-';
+      evBrk.title = events.length ? evBreakdownText : '内訳：-';
     }
 
     // =========================================================================
     // 9. TAB 1: 📊 年間推移
     // =========================================================================
+    let isKpiVisible = true;
+    function toggleKpiSection() {
+      isKpiVisible = !isKpiVisible;
+      const sec = document.getElementById('kpiSection');
+      const chev = document.getElementById('kpiToggleChevron');
+      const btn = document.getElementById('kpiToggleBtn');
+      if (sec) sec.classList.toggle('hidden', !isKpiVisible);
+      if (chev) chev.textContent = isKpiVisible ? '▲' : '▼';
+      if (btn) {
+        btn.className = isKpiVisible
+          ? 'inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-bold text-purple-700 bg-purple-50/70 hover:bg-purple-100 border border-purple-100 transition cursor-pointer'
+          : 'inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-bold text-slate-400 hover:text-purple-700 hover:bg-purple-50 border border-transparent transition cursor-pointer';
+      }
+    }
+
+    function toggleGuidePopover(evt) {
+      if (evt) evt.stopPropagation();
+      const pop = document.getElementById('guidePopover');
+      if (pop) pop.classList.toggle('hidden');
+    }
+
+    document.addEventListener('click', (e) => {
+      const wrap = document.getElementById('guidePopoverWrap');
+      const pop = document.getElementById('guidePopover');
+      if (wrap && pop && !wrap.contains(e.target)) {
+        pop.classList.add('hidden');
+      }
+    });
+
     function setOverviewChartMode(mode) {
       overviewChartMode = mode;
       document.getElementById('ovModeBtn-compare').className = mode === 'compare'
@@ -2217,9 +2484,12 @@
       document.getElementById('ovModeBtn-cumulative').className = mode === 'cumulative'
         ? 'px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-700 text-white shadow-sm transition cursor-pointer'
         : 'px-2.5 py-1 rounded-lg text-xs font-bold text-purple-800 hover:bg-purple-100 transition cursor-pointer';
-      document.getElementById('overviewModeDesc').textContent = mode === 'compare'
-        ? '過去年レンジ帯（最小〜最大）と前年の比較表示（凡例で表示切替・棒クリックで詳細）'
-        : '1月〜12月の年間累計推移（対象年 vs 前年）';
+      const descEl = document.getElementById('overviewModeDesc');
+      if (descEl) {
+        descEl.textContent = mode === 'compare'
+          ? '初期表示は対象年＋直近1年（凡例クリックで他の過去年も重ねて表示できます）'
+          : '1月〜12月の年間累計推移（凡例クリックで他の過去年も重ねて表示できます）';
+      }
       renderOverviewSection();
     }
 
@@ -2252,13 +2522,15 @@
         }
       });
       appData.fullVideos.forEach(v => {
-        if (matrix[v.year] && v.month >= 1 && v.month <= 12) matrix[v.year].full[v.month - 1] += 1;
+        if (!isFullVideoExcluded(v) && matrix[v.year] && v.month >= 1 && v.month <= 12) {
+          matrix[v.year].full[v.month - 1] += 1;
+        }
       });
       appData.shortVideos.forEach(v => {
         if (!v.isExcluded && matrix[v.year] && v.month >= 1 && v.month <= 12) matrix[v.year].short[v.month - 1] += 1;
       });
       appData.setlist.forEach(r => {
-        if (matrix[r.year] && r.month >= 1 && r.month <= 12) matrix[r.year].songs[r.month - 1] += 1;
+        if (!isSetlistRowExcluded(r) && matrix[r.year] && r.month >= 1 && r.month <= 12) matrix[r.year].songs[r.month - 1] += 1;
       });
       appData.events.forEach(e => {
         if (matrix[e.year] && e.month >= 1 && e.month <= 12) {
@@ -2274,9 +2546,21 @@
       const years = getAvailableYears();
       const matrix = buildMonthlyMatrix(years);
       const targetYear = selectedYear === 'all' ? years[0] : Number(selectedYear);
-      const prevYear = years.includes(targetYear - 1) ? targetYear - 1 : null;
-      const pastYears = years.filter(y => y !== targetYear);
+      const yearsAsc = years.slice().sort((a, b) => a - b);
+      const pastYearsAsc = yearsAsc.filter(y => y !== targetYear);
       const monthsLabel = Array.from({ length: 12 }, (_, i) => `${i + 1}月`);
+
+      const yearLineColors = {
+        2020: '#06b6d4',
+        2021: '#10b981',
+        2022: '#f59e0b',
+        2023: '#ef4444',
+        2024: '#3b82f6',
+        2025: '#8b5cf6',
+        2026: '#ec4899'
+      };
+      const getYearLineColor = (y) => yearLineColors[y] || hashColor(`${y}年`);
+      const hasYearData = (y, key) => matrix[y] && matrix[y][key].some(v => v > 0);
 
       const configs = [
         { key: 'hours',   canvas: 'chartOvHours',   badge: 'ovHoursBadge',   color: '#9333ea', unit: 'h', fixed1: true,  title: '配信時間' },
@@ -2298,41 +2582,99 @@
 
         const datasets = [];
         if (overviewChartMode === 'compare') {
-          if (selectedYear !== 'all' && pastYears.length > 0) {
-            const minArr = Array.from({ length: 12 }, (_, mi) => Math.min(...pastYears.map(y => matrix[y][cfg.key][mi])));
-            const maxArr = Array.from({ length: 12 }, (_, mi) => Math.max(...pastYears.map(y => matrix[y][cfg.key][mi])));
-            datasets.push({
-              type: 'line', label: '過去最小', data: minArr,
-              borderColor: 'transparent', backgroundColor: 'transparent', pointRadius: 0, fill: false, order: 3
-            });
-            datasets.push({
-              type: 'line', label: '過去レンジ帯', data: maxArr,
-              borderColor: 'rgba(148,163,184,0.35)', borderWidth: 1, backgroundColor: 'rgba(148,163,184,0.16)',
-              pointRadius: 0, fill: '-1', tension: 0.25, order: 2
-            });
-          }
-          if (selectedYear !== 'all' && prevYear) {
-            datasets.push({
-              type: 'line', label: `${prevYear}年`, data: matrix[prevYear][cfg.key],
-              borderColor: '#64748b', borderWidth: 2, borderDash: [4, 3],
-              pointRadius: 2.5, pointBackgroundColor: '#64748b', tension: 0.2, fill: false, order: 1
-            });
-          }
           datasets.push({
-            type: 'bar', label: selectedYear === 'all' ? '全期間合計' : `${targetYear}年`,
-            data: curArr, backgroundColor: cfg.color, borderRadius: 5, maxBarThickness: 24, order: 0
+            type: 'bar',
+            label: selectedYear === 'all' ? '全期間合計' : `${targetYear}年`,
+            data: curArr,
+            backgroundColor: cfg.color,
+            borderRadius: 5,
+            maxBarThickness: 26,
+            order: 2
+          });
+
+          const lineYears = selectedYear === 'all'
+            ? yearsAsc.filter(y => hasYearData(y, cfg.key))
+            : pastYearsAsc.filter(y => hasYearData(y, cfg.key));
+          const defaultVisibleYear = lineYears.length ? lineYears[lineYears.length - 1] : null;
+
+          lineYears.forEach((y, idx) => {
+            const lc = getYearLineColor(y);
+            const isDefaultVisible = y === defaultVisibleYear;
+            datasets.push({
+              type: 'line',
+              label: `${y}年`,
+              data: matrix[y][cfg.key],
+              borderColor: lc,
+              backgroundColor: lc,
+              borderWidth: isDefaultVisible ? 2.2 : 1.8,
+              borderDash: isDefaultVisible ? [4, 3] : [],
+              pointRadius: 2.5,
+              pointHoverRadius: 4,
+              pointBackgroundColor: lc,
+              tension: 0,
+              fill: false,
+              hidden: !isDefaultVisible,
+              order: 1,
+              _dsIdx: idx
+            });
           });
         } else {
           const toCum = arr => { let acc = 0; return arr.map(v => { acc += v; return Math.round(acc * 10) / 10; }); };
-          datasets.push({
-            type: 'line', label: selectedYear === 'all' ? '全期間累計' : `${targetYear}年 累計`,
-            data: toCum(curArr), borderColor: cfg.color, backgroundColor: `${cfg.color}20`,
-            borderWidth: 2.5, pointRadius: 3, tension: 0.25, fill: true
-          });
-          if (selectedYear !== 'all' && prevYear) {
+          if (selectedYear === 'all') {
             datasets.push({
-              type: 'line', label: `${prevYear}年 累計`, data: toCum(matrix[prevYear][cfg.key]),
-              borderColor: '#94a3b8', borderWidth: 2, borderDash: [4, 3], pointRadius: 2, tension: 0.25, fill: false
+              type: 'line',
+              label: '全期間累計',
+              data: toCum(curArr),
+              borderColor: cfg.color,
+              backgroundColor: `${cfg.color}20`,
+              borderWidth: 2.5,
+              pointRadius: 3,
+              tension: 0,
+              fill: true,
+              order: 0
+            });
+            const activeAllYears = yearsAsc.filter(y => hasYearData(y, cfg.key));
+            const latestAllYear = activeAllYears.length ? activeAllYears[activeAllYears.length - 1] : null;
+            activeAllYears.forEach(y => {
+              const lc = getYearLineColor(y);
+              datasets.push({
+                type: 'line',
+                label: `${y}年 累計`,
+                data: toCum(matrix[y][cfg.key]),
+                borderColor: lc,
+                backgroundColor: lc,
+                borderWidth: 1.8,
+                borderDash: [4, 3],
+                pointRadius: 2,
+                tension: 0,
+                fill: false,
+                hidden: y !== latestAllYear,
+                order: 1
+              });
+            });
+          } else {
+            const activeYearsAsc = yearsAsc.filter(y => y === targetYear || hasYearData(y, cfg.key));
+            const pastActiveAsc = activeYearsAsc.filter(y => y !== targetYear);
+            const defaultVisiblePast = pastActiveAsc.length ? pastActiveAsc[pastActiveAsc.length - 1] : null;
+            activeYearsAsc.forEach(y => {
+              const isTarget = y === targetYear;
+              const isDefaultVisible = isTarget || y === defaultVisiblePast;
+              const lc = isTarget ? cfg.color : getYearLineColor(y);
+              datasets.push({
+                type: 'line',
+                label: `${y}年 累計`,
+                data: toCum(matrix[y][cfg.key]),
+                borderColor: lc,
+                backgroundColor: isTarget ? `${cfg.color}22` : lc,
+                borderWidth: isTarget ? 2.8 : 2,
+                borderDash: isTarget ? [] : [4, 3],
+                pointRadius: isTarget ? 3 : 2.5,
+                pointHoverRadius: 4,
+                tension: 0,
+                fill: isTarget,
+                hidden: !isDefaultVisible,
+                order: isTarget ? 0 : 1
+              });
             });
           }
         }
@@ -2356,9 +2698,13 @@
               }
             },
             plugins: {
+              barCenterLabel: {
+                enabled: overviewChartMode === 'compare',
+                fixed1: cfg.fixed1
+              },
               legend: {
                 position: 'bottom',
-                labels: { font: { size: 10 }, boxWidth: 10, filter: item => item.text !== '過去最小' }
+                labels: { font: { size: 10 }, boxWidth: 10 }
               }
             },
             scales: {
@@ -2426,7 +2772,7 @@
             showEventDetailModal(`🏷️ イベント種別「${tp}」一覧`, events.filter(e => (e.type || 'その他') === tp));
           },
           plugins: {
-            centerText: { label: '種別計', unit: '回' },
+            centerText: { label: '合計', unit: '回' },
             legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10 } }
           }
         }
@@ -2535,7 +2881,8 @@
     }
 
     function renderMusicSection() {
-      const fulls = filterBySelectedYear(appData.fullVideos);
+      const fullsAll = filterBySelectedYear(appData.fullVideos);
+      const fulls = fullsAll.filter(v => !isFullVideoExcluded(v));
       const shortsAll = filterBySelectedYear(appData.shortVideos);
       const shorts = shortsAll.filter(s => !s.isExcluded);
       const months = Array.from({ length: 12 }, (_, i) => `${i + 1}月`);
@@ -2556,7 +2903,7 @@
           onClick: (evt, elems) => {
             if (!elems.length) return;
             const m = elems[0].index + 1;
-            showVideoDetailModal(`🎬 ${m}月 Full動画一覧`, fulls.filter(v => v.month === m), 'full');
+            showVideoDetailModal(`🎬 ${m}月 Full動画一覧`, fullsAll.filter(v => v.month === m), 'full');
           },
           plugins: {
             barTotal: { enabled: true, unit: '本', summaryElId: 'fullMonthlySummary', monthDiv: mDiv },
@@ -2587,10 +2934,10 @@
           onClick: (evt, elems) => {
             if (!elems.length || !ftEntries.length) return;
             const tp = ftEntries[elems[0].index][0];
-            showVideoDetailModal(`🎨 Full動画「${tp}」一覧`, fulls.filter(v => (v.type || 'Solo') === tp), 'full');
+            showVideoDetailModal(`🎨 Full動画「${tp}」一覧`, fullsAll.filter(v => (v.type || 'Solo') === tp), 'full');
           },
           plugins: {
-            centerText: { label: 'Full計', unit: '本' },
+            centerText: { label: '合計', unit: '本' },
             legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10 } }
           }
         }
@@ -2613,7 +2960,7 @@
           onClick: (evt, elems) => {
             if (!elems.length) return;
             const m = elems[0].index + 1;
-            showVideoDetailModal(`📱 ${m}月 Short動画一覧`, shorts.filter(v => v.month === m), 'short');
+            showVideoDetailModal(`📱 ${m}月 Short動画一覧`, shortsAll.filter(v => v.month === m), 'short');
           },
           plugins: {
             barTotal: { enabled: true, unit: '本', summaryElId: 'shortMonthlySummary', monthDiv: mDiv },
@@ -2643,10 +2990,10 @@
           onClick: (evt, elems) => {
             if (!elems.length || !hasSh) return;
             const cat = shortCats[elems[0].index];
-            showVideoDetailModal(`🏷️ Short「${cat}」一覧`, shorts.filter(v => v.category === cat), 'short');
+            showVideoDetailModal(`🏷️ Short「${cat}」一覧`, shortsAll.filter(v => v.category === cat), 'short');
           },
           plugins: {
-            centerText: { label: 'Short計', unit: '本' },
+            centerText: { label: '合計', unit: '本' },
             legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10 } }
           }
         }
@@ -2670,7 +3017,7 @@
             const comp = shLabels[elems[0].index];
             showVideoDetailModal(`🎼 Short 作曲者「${comp}」一覧`, shorts.filter(v => splitPersonNames(v.composer).includes(comp)), 'short');
           },
-          plugins: { centerText: { label: '件数', unit: '' }, legend: { display: false } }
+          plugins: { centerText: { label: '合計', unit: '本' }, legend: { display: false } }
         }
       });
       renderCustomLegend('legendShortComposers', 'shortComposers', shLabels, shVals, shCols);
@@ -2679,7 +3026,7 @@
     }
 
     function renderFullCreditChart() {
-      const fulls = filterBySelectedYear(appData.fullVideos);
+      const fulls = filterBySelectedYear(appData.fullVideos).filter(v => !isFullVideoExcluded(v));
       const map = {};
       fulls.forEach(v => {
         splitPersonNames(v[activeCreditKey]).forEach(name => { map[name] = (map[name] || 0) + 1; });
@@ -2699,7 +3046,7 @@
             const name = labels[elems[0].index];
             showVideoDetailModal(`✨ クレジット「${name}」関連Full動画`, fulls.filter(v => splitPersonNames(v[activeCreditKey]).includes(name)), 'full');
           },
-          plugins: { centerText: { label: '件数', unit: '' }, legend: { display: false } }
+          plugins: { centerText: { label: '合計', unit: '本' }, legend: { display: false } }
         }
       });
       renderCustomLegend('legendFullCredits', 'fullCredits', labels, vals, cols);
@@ -2713,15 +3060,16 @@
 
       const ftb = document.getElementById('fullTableBody');
       if (ftb) {
-        ftb.innerHTML = fulls.length ? fulls.map(v => `
-          <tr class="hover:bg-purple-50/40">
+        ftb.innerHTML = fulls.length ? fulls.map(v => {
+          const excluded = isFullVideoExcluded(v);
+          return `<tr class="hover:bg-purple-50/40 ${excluded ? 'bg-slate-50/80 text-slate-400' : ''}">
             <td class="py-1.5 px-2 font-mono text-slate-500 whitespace-nowrap">${escapeHtml(v.dateStr)}</td>
-            <td class="py-1.5 px-2"><div class="font-bold text-slate-800">${escapeHtml(v.title)}</div><div class="text-[10px] text-slate-400">${escapeHtml(v.vocal || '')}</div></td>
+            <td class="py-1.5 px-2"><div>${renderExcludedTitleHtml(v.title, excluded, '回数除外')}</div><div class="text-[10px] text-slate-400">${escapeHtml(v.vocal || '')}</div></td>
             <td class="py-1.5 px-2">${renderColoredBadge(v.type || 'Solo', getFullTypeColor(v.type))}</td>
             <td class="py-1.5 px-2 text-slate-600">${escapeHtml(v.composer || '-')}</td>
             <td class="py-1.5 px-1.5 text-center"><button onclick="openEditModal('full','${v._uid}')" class="text-slate-400 hover:text-purple-700 cursor-pointer">✏️</button></td>
-          </tr>
-        `).join('') : '<tr><td colspan="5" class="py-6 text-center text-slate-400">該当するFull動画がありません</td></tr>';
+          </tr>`;
+        }).join('') : '<tr><td colspan="5" class="py-6 text-center text-slate-400">該当するFull動画がありません</td></tr>';
       }
 
       const sq = (document.getElementById('shortSearchInput')?.value || '').trim().toLowerCase();
@@ -2731,16 +3079,15 @@
 
       const stb = document.getElementById('shortTableBody');
       if (stb) {
-        stb.innerHTML = shorts.length ? shorts.map(v => {
-          const strike = v.isExcluded ? 'line-through text-slate-400' : 'text-slate-800 font-bold';
-          return `<tr class="hover:bg-fuchsia-50/40">
+        stb.innerHTML = shorts.length ? shorts.map(v => `
+          <tr class="hover:bg-fuchsia-50/40 ${v.isExcluded ? 'bg-slate-50/80 text-slate-400' : ''}">
             <td class="py-1.5 px-2 font-mono text-slate-500 whitespace-nowrap">${escapeHtml(v.dateStr)}</td>
-            <td class="py-1.5 px-2 ${strike}">${escapeHtml(v.title)}${v.isExcluded ? ' <span class="no-underline text-[9px] text-slate-400">(Xのみ除外)</span>' : ''}</td>
+            <td class="py-1.5 px-2">${renderExcludedTitleHtml(v.title, !!v.isExcluded, '回数除外')}</td>
             <td class="py-1.5 px-2">${renderColoredBadge(v.category, getShortCatColor(v.category))}</td>
             <td class="py-1.5 px-2 text-slate-600"><div>${escapeHtml(v.composer || '-')}</div><div class="text-[10px] text-slate-400">${escapeHtml(v.platform || '')}</div></td>
             <td class="py-1.5 px-1.5 text-center"><button onclick="openEditModal('short','${v._uid}')" class="text-slate-400 hover:text-purple-700 cursor-pointer">✏️</button></td>
-          </tr>`;
-        }).join('') : '<tr><td colspan="5" class="py-6 text-center text-slate-400">該当するShort動画がありません</td></tr>';
+          </tr>
+        `).join('') : '<tr><td colspan="5" class="py-6 text-center text-slate-400">該当するShort動画がありません</td></tr>';
       }
     }
 
@@ -2771,7 +3118,7 @@
             const tag = catLabels[elems[0].index];
             showStreamDetailModal(`🏷️ 配信カテゴリ「${tag}」一覧`, validStreams.filter(s => (s.tags || []).includes(tag)));
           },
-          plugins: { centerText: { label: '延べタグ', unit: '' }, legend: { display: false } }
+          plugins: { centerText: { label: '延べ', unit: '件' }, legend: { display: false } }
         }
       });
       renderCustomLegend('legendStreamCat', 'streamCat', catLabels, catVals, catCols);
@@ -2891,7 +3238,7 @@
       tbody.innerHTML = list.map(s => `
         <tr class="hover:bg-purple-50/40 ${s.isError ? 'bg-slate-50/80 text-slate-400' : ''}">
           <td class="py-1.5 px-2 font-mono text-slate-500 whitespace-nowrap">${escapeHtml(s.dateStr)}</td>
-          <td class="py-1.5 px-2 font-bold ${s.isError ? 'line-through text-slate-400' : 'text-slate-800'}">${escapeHtml(s.title)}${s.isError ? ' <span class="no-underline text-[9px] text-rose-500">(回数除外)</span>' : ''}</td>
+          <td class="py-1.5 px-2">${renderExcludedTitleHtml(s.title, !!s.isError, '回数除外')}</td>
           <td class="py-1.5 px-2"><div class="flex flex-wrap gap-1">${(s.tags || []).map(t => renderColoredBadge(t, getStreamCatColor(t))).join('')}</div></td>
           <td class="py-1.5 px-2 font-mono text-right whitespace-nowrap text-slate-600">${formatSecondsHMS(getStreamSeconds(s))}</td>
           <td class="py-1.5 px-1.5 text-center"><button onclick="openEditModal('stream','${s._uid}')" class="text-slate-400 hover:text-purple-700 cursor-pointer">✏️</button></td>
@@ -2936,7 +3283,7 @@
     }
 
     function renderSingingSection() {
-      const setlists = filterBySelectedYear(appData.setlist);
+      const setlists = filterBySelectedYear(appData.setlist).filter(r => !isSetlistRowExcluded(r));
       const months = Array.from({ length: 12 }, (_, i) => `${i + 1}月`);
       const types = Array.from(new Set(setlists.map(r => normalizeSetlistType(r.type))));
       const activeTypes = types.length ? types : ['歌枠'];
@@ -2963,7 +3310,7 @@
           onClick: (evt, elems) => {
             if (!elems.length) return;
             const m = elems[0].index + 1;
-            showSetlistDetailModal(`🗓️ ${m}月 セットリスト一覧`, setlists.filter(r => r.month === m));
+            showSetlistSessionsDetailModal(`🗓️ ${m}月 開催配信・LIVE一覧`, setlists.filter(r => r.month === m));
           },
           plugins: {
             barTotal: { enabled: true, unit: '回', summaryElId: 'setlistSessionsMonthlyBadge' },
@@ -3069,7 +3416,7 @@
 
       window._slSummaryCache = {
         allScoped: scoped,
-        debutRows: debutSongs.map(k => songMap[k][0]),
+        debutRows: debutSongs.flatMap(k => songMap[k]),
         stapleRows: stapleSongs.flatMap(k => songMap[k]),
         rareRows: rareSongs.flatMap(k => songMap[k]),
         maxSess
@@ -3082,14 +3429,14 @@
         } else {
           wrap.innerHTML = `
             <div class="grid grid-cols-2 gap-2.5">
-              <div onclick="showSetlistDetailModal('🎵 ${escapeHtml(meta.label)} 全歌唱履歴', window._slSummaryCache.allScoped)" class="rounded-xl p-2.5 bg-purple-50/70 border border-purple-100 hover:border-purple-300 transition cursor-pointer">
+              <div onclick="showUniqueSongsDetailModal('🎵 ${escapeHtml(meta.label)} レパートリー一覧', window._slSummaryCache.allScoped)" class="rounded-xl p-2.5 bg-purple-50/70 border border-purple-100 hover:border-purple-300 transition cursor-pointer">
                 <div class="text-[11px] font-bold text-purple-700">🎵 レパートリー数</div>
                 <div class="mt-1 flex items-baseline justify-between">
                   <div><span class="text-2xl font-black text-slate-900">${uniqueSongs.length}</span><span class="text-xs font-bold text-slate-500 ml-0.5">曲</span></div>
                   <span class="text-[10px] font-semibold text-slate-400">延べ${totalSongs}曲</span>
                 </div>
               </div>
-              <div onclick="showSetlistDetailModal('🆕 ${escapeHtml(debutLabel)} 一覧', window._slSummaryCache.debutRows)" class="rounded-xl p-2.5 bg-emerald-50/70 border border-emerald-200/80 hover:border-emerald-400 transition cursor-pointer">
+              <div onclick="showUniqueSongsDetailModal('🆕 ${escapeHtml(debutLabel)} 一覧', window._slSummaryCache.debutRows)" class="rounded-xl p-2.5 bg-emerald-50/70 border border-emerald-200/80 hover:border-emerald-400 transition cursor-pointer">
                 <div class="flex items-center justify-between">
                   <span class="text-[11px] font-bold text-emerald-700">🆕 ${escapeHtml(debutLabel)}</span>
                   <span class="px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black">${debutPct}%</span>
@@ -3103,8 +3450,8 @@
 
             <div class="rounded-xl p-2.5 bg-slate-50/90 border border-slate-100">
               <div class="flex items-center justify-between text-[11px] font-bold mb-1.5">
-                <button onclick="showSetlistDetailModal('🔁 定番曲(2回〜) 一覧', window._slSummaryCache.stapleRows)" class="text-purple-700 hover:underline cursor-pointer">🔁 定番曲(2回〜) ${stapleSongs.length}曲 (${staplePct}%)</button>
-                <button onclick="showSetlistDetailModal('✨ レア曲(1回) 一覧', window._slSummaryCache.rareRows)" class="text-pink-600 hover:underline cursor-pointer">✨ レア曲(1回) ${rareSongs.length}曲 (${rarePct}%)</button>
+                <button onclick="showUniqueSongsDetailModal('🔁 定番曲(2回〜) 一覧', window._slSummaryCache.stapleRows)" class="text-purple-700 hover:underline cursor-pointer">🔁 定番曲(2回〜) ${stapleSongs.length}曲 (${staplePct}%)</button>
+                <button onclick="showUniqueSongsDetailModal('✨ レア曲(1回) 一覧', window._slSummaryCache.rareRows)" class="text-pink-600 hover:underline cursor-pointer">✨ レア曲(1回) ${rareSongs.length}曲 (${rarePct}%)</button>
               </div>
               <div class="w-full h-2.5 rounded-full bg-pink-500 overflow-hidden flex">
                 <div style="width:${staplePct}%;" class="bg-purple-600 h-full"></div>
@@ -3200,15 +3547,16 @@
       } else {
         selectedSetlistTypes.add(tp);
       }
-      renderSetlistTypeFilterBar(filterBySelectedYear(appData.setlist));
+      renderSetlistTypeFilterBar(filterBySelectedYear(appData.setlist).filter(r => !isSetlistRowExcluded(r)));
       filterSetlistDisplay();
     }
 
     function filterSetlistDisplay() {
       const q = (document.getElementById('setlistSearchInput')?.value || '').trim().toLowerCase();
-      const filtered = filterBySelectedYear(appData.setlist)
+      const filteredAll = filterBySelectedYear(appData.setlist)
         .filter(r => selectedSetlistTypes.size === 0 || selectedSetlistTypes.has(normalizeSetlistType(r.type)))
         .filter(r => !q || `${r.title} ${r.streamTitle} ${r.type}`.toLowerCase().includes(q));
+      const filteredValid = filteredAll.filter(r => !isSetlistRowExcluded(r));
 
       const grid = document.getElementById('setlistCardsGrid');
       const badge = document.getElementById('setlistCountBadge');
@@ -3216,16 +3564,24 @@
 
       if (setlistDisplayMode === 'unique') {
         const map = {};
-        filtered.forEach(r => {
+        filteredValid.forEach(r => {
           const k = r.title.trim();
           if (!map[k]) map[k] = [];
           map[k].push(r);
         });
-        const entries = Object.entries(map).sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0], 'ja'));
-        if (badge) badge.textContent = `${entries.length}曲 (延べ${filtered.length}曲)`;
-        window._slUniqueMap = map;
-        grid.innerHTML = entries.length ? entries.map(([title, rows]) => {
+        const entries = Object.entries(map).map(([title, rows]) => {
           const latest = rows.slice().sort((a, b) => b.sortKey.localeCompare(a.sortKey))[0];
+          return { title, rows, latest };
+        }).sort((a, b) => {
+          if (b.rows.length !== a.rows.length) return b.rows.length - a.rows.length;
+          const dateCmp = sortOrders.setlist === 'desc'
+            ? b.latest.sortKey.localeCompare(a.latest.sortKey)
+            : a.latest.sortKey.localeCompare(b.latest.sortKey);
+          return dateCmp || a.title.localeCompare(b.title, 'ja');
+        });
+        if (badge) badge.textContent = `${entries.length}曲 (延べ${filteredValid.length}曲)`;
+        window._slUniqueMap = map;
+        grid.innerHTML = entries.length ? entries.map(({ title, rows, latest }) => {
           const typeCounts = {};
           rows.forEach(r => {
             const tp = normalizeSetlistType(r.type);
@@ -3235,9 +3591,10 @@
             .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'ja'))
             .map(([tp, cnt]) => {
               const tc = getSetlistTypeColor(tp);
-              return `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold leading-none whitespace-nowrap" style="background-color:${tc}1a; color:${tc}; border:1px solid ${tc}44;">${escapeHtml(tp)} ${cnt}</span>`;
+              return `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold whitespace-nowrap" style="background-color:${tc}1a; color:${tc}; border:1px solid ${tc}44;">${escapeHtml(tp)} ${cnt}</span>`;
             }).join('');
-          return `<div onclick="showSetlistDetailModal('🎵 ${escapeHtml(title).replace(/'/g, "\\'")} 歌唱履歴', window._slUniqueMap['${escapeHtml(title).replace(/'/g, "\\'")}'])" class="rounded-xl p-2 bg-slate-50/80 hover:bg-purple-50/70 border border-slate-100 hover:border-purple-200 transition cursor-pointer flex flex-col justify-between gap-1.5">
+          const safeTitleJs = escapeHtml(title).replace(/'/g, "\\'");
+          return `<div onclick="showSetlistDetailModal('🎵 ${safeTitleJs} 歌唱履歴', window._slUniqueMap['${safeTitleJs}'])" class="rounded-xl p-2 bg-slate-50/80 hover:bg-purple-50/70 border border-slate-100 hover:border-purple-200 transition cursor-pointer flex flex-col justify-between gap-1.5">
             <div class="flex items-start justify-between gap-1">
               <span class="text-xs font-bold text-slate-800 line-clamp-2">${escapeHtml(title)}</span>
               <span class="px-1.5 py-0.5 rounded-md text-[10px] font-black shrink-0 bg-purple-100/70 text-purple-700 border border-purple-200">×${rows.length}</span>
@@ -3247,40 +3604,31 @@
           </div>`;
         }).join('') : '<div class="col-span-full py-8 text-center text-xs text-slate-400">該当する曲がありません</div>';
       } else {
-        const sorted = filtered.slice().sort((a, b) =>
+        const sorted = filteredAll.slice().sort((a, b) =>
           sortOrders.setlist === 'desc' ? b.sortKey.localeCompare(a.sortKey) : a.sortKey.localeCompare(b.sortKey)
         );
-        if (badge) badge.textContent = `${sorted.length}曲`;
-        grid.innerHTML = sorted.length ? sorted.map(r => `
-          <div class="rounded-xl p-2 bg-slate-50/80 border border-slate-100 flex flex-col justify-between gap-1">
+        if (badge) badge.textContent = `${filteredValid.length}曲`;
+        grid.innerHTML = sorted.length ? sorted.map(r => {
+          const excluded = isSetlistRowExcluded(r);
+          return `<div class="rounded-xl p-2 ${excluded ? 'bg-slate-50/80 text-slate-400' : 'bg-slate-50/80'} border border-slate-100 flex flex-col justify-between gap-1">
             <div class="flex items-start justify-between gap-1">
-              <span class="text-xs font-bold text-slate-800 line-clamp-2">${escapeHtml(r.title)}</span>
+              <span class="text-xs line-clamp-2">${renderExcludedTitleHtml(r.title, excluded, '回数除外')}</span>
               <button onclick="openEditModal('setlist','${r._uid}')" class="text-slate-400 hover:text-purple-700 text-[11px] shrink-0 cursor-pointer">✏️</button>
             </div>
             <div class="flex items-center justify-between gap-1 text-[10px]">
               ${renderColoredBadge(normalizeSetlistType(r.type), getSetlistTypeColor(r.type))}
               <span class="font-mono text-slate-400">${escapeHtml(r.dateStr)}</span>
             </div>
-            <div class="text-[10px] text-slate-500 truncate">${r.url ? `<a href="${escapeHtml(r.url)}" target="_blank" rel="noopener" class="text-purple-700 hover:underline">${escapeHtml(r.streamTitle)} ↗</a>` : escapeHtml(r.streamTitle)}</div>
-          </div>
-        `).join('') : '<div class="col-span-full py-8 text-center text-xs text-slate-400">該当する曲がありません</div>';
+            <div class="text-[10px] text-slate-500 truncate">${escapeHtml(r.streamTitle)}</div>
+          </div>`;
+        }).join('') : '<div class="col-span-full py-8 text-center text-xs text-slate-400">該当する曲がありません</div>';
       }
     }
 
     // =========================================================================
-    // 14. TAB 6: ⚖️ 比較（通算サマリー＋月別比較＋6軸レーダー＋活動スタイル変化）
+    // 14. TAB 6: ⚖️ 比較（月別比較＋6軸レーダー＋活動スタイル変化）
     // =========================================================================
     function renderArchiveSection() {
-      const validStreams = appData.streams.filter(s => !s.isError);
-      const totalSeconds = appData.streams.reduce((a, b) => a + getStreamSeconds(b), 0);
-      const totalFull = appData.fullVideos.length;
-      const totalSinging = appData.streams.filter(isSingingStream).length;
-
-      document.getElementById('archTotalStreams').textContent = `${validStreams.length.toLocaleString()}回`;
-      document.getElementById('archTotalHours').textContent = `${Number(formatHours1Dec(totalSeconds)).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}時間`;
-      document.getElementById('archTotalFull').textContent = `${totalFull.toLocaleString()}本`;
-      document.getElementById('archTotalSinging').textContent = `${totalSinging.toLocaleString()}回`;
-
       renderArchiveComparison();
     }
 
@@ -3292,12 +3640,6 @@
       document.getElementById('radarScaleBtn-pair').className = mode === 'pair'
         ? 'px-2 py-0.5 rounded-md bg-purple-700 text-white shadow-sm transition cursor-pointer'
         : 'px-2 py-0.5 rounded-md text-purple-800 hover:bg-purple-100 transition cursor-pointer';
-      const desc = document.getElementById('radarModeDesc');
-      if (desc) {
-        desc.textContent = mode === 'all'
-          ? '各軸の過去最大値＝100点基準でスコア化（ホバーで実数値を表示）'
-          : '比較中の2か年（または過去平均）のうち大きい方＝100点基準でスコア化';
-      }
       renderArchiveComparison();
     }
 
@@ -3311,14 +3653,6 @@
           ? 'px-2.5 py-1 rounded-lg bg-purple-700 text-white shadow-sm transition cursor-pointer'
           : 'px-2.5 py-1 rounded-lg text-purple-800 hover:bg-purple-100 transition cursor-pointer';
       });
-      const descMap = {
-        time: '時間帯シフト：朝・昼・夕方・夜・深夜の配信回数変化（棒クリックで詳細一覧）',
-        streamCat: '配信カテゴリシフト：全配信カテゴリの回数変化（棒クリックで詳細一覧）',
-        eventChannel: 'イベント種別シフト：ライブ・リリイベ・ファンミ・特典会などの種別ごとの回数変化（棒クリックで詳細一覧）',
-        fullType: '動画種別シフト：Full動画の Solo / Collab / Original / Live action 等の本数変化（棒クリックで詳細一覧）'
-      };
-      const descEl = document.getElementById('styleShiftDesc');
-      if (descEl) descEl.textContent = descMap[mode] || '';
       renderArchiveComparison();
     }
 
@@ -3369,7 +3703,6 @@
         return Math.round((sum / Math.max(1, poolB.length)) * 10) / 10;
       });
 
-      // 有効月（対象年Aでデータが存在する最終月）を基準に同期間比を計算
       let lastActiveM = 0;
       for (let i = 11; i >= 0; i--) {
         if ((matrix[yA]?.hoursSec[i] || 0) > 0 || (matrix[yA]?.streams[i] || 0) > 0 || (matrix[yA]?.full[i] || 0) > 0 || (matrix[yA]?.events[i] || 0) > 0) {
@@ -3398,7 +3731,7 @@
       if (statsBar) {
         statsBar.innerHTML = `
           <div>
-            <div class="text-[10px] text-slate-400 font-bold">${yA}年 (1〜${cmpMonths}月)</div>
+            <div class="text-[10px] text-slate-400 font-bold">${yA}年</div>
             <div class="text-sm font-black text-purple-700">${fmtVal(sumA)}${metricMeta.unit}</div>
           </div>
           <div>
@@ -3412,7 +3745,6 @@
         `;
       }
 
-      // 1) 月別指標比較グラフ
       const monthsLabel = Array.from({ length: 12 }, (_, i) => `${i + 1}月`);
       createChart('archiveCompare', 'chartArchiveCompare', {
         type: 'bar',
@@ -3434,11 +3766,11 @@
             if (metric === 'full') {
               showVideoDetailModal(`🎬 ${targetLbl} Full動画一覧`, appData.fullVideos.filter(v => targetYears.includes(v.year) && v.month === m), 'full');
             } else if (metric === 'short') {
-              showVideoDetailModal(`📱 ${targetLbl} Short動画一覧`, appData.shortVideos.filter(v => !v.isExcluded && targetYears.includes(v.year) && v.month === m), 'short');
+              showVideoDetailModal(`📱 ${targetLbl} Short動画一覧`, appData.shortVideos.filter(v => targetYears.includes(v.year) && v.month === m), 'short');
             } else if (metric === 'singing') {
               showStreamDetailModal(`🎤 ${targetLbl} 歌枠一覧`, appData.streams.filter(s => targetYears.includes(s.year) && s.month === m && isSingingStream(s)));
             } else if (metric === 'songs') {
-              showSetlistDetailModal(`🎵 ${targetLbl} 歌唱曲一覧`, appData.setlist.filter(r => targetYears.includes(r.year) && r.month === m));
+              showSetlistDetailModal(`🎵 ${targetLbl} 歌唱曲一覧`, appData.setlist.filter(r => !isSetlistRowExcluded(r) && targetYears.includes(r.year) && r.month === m));
             } else if (metric === 'events') {
               showEventDetailModal(`🎪 ${targetLbl} イベント一覧`, appData.events.filter(e => targetYears.includes(e.year) && e.month === m));
             } else {
@@ -3455,7 +3787,6 @@
         }
       });
 
-      // 2) 6軸レーダーチャート
       const radarAxes = [
         { key: 'hours',       label: '配信時間',              unit: 'h',  fixed1: true  },
         { key: 'streams',     label: '配信回数',              unit: '回', fixed1: false },
@@ -3539,7 +3870,6 @@
         }
       });
 
-      // 3) 活動スタイル変化（実数比較＆年別実数推移）
       renderStyleShiftCharts(years, yA, poolB, labelB);
     }
 
@@ -3599,7 +3929,7 @@
         unit = '本';
         const globalTypeCnt = {};
         appData.fullVideos.forEach(v => {
-          if (!countByYearCat[v.year]) return;
+          if (isFullVideoExcluded(v) || !countByYearCat[v.year]) return;
           const tp = (v.type || 'Solo').trim();
           globalTypeCnt[tp] = (globalTypeCnt[tp] || 0) + 1;
           countByYearCat[v.year][tp] = (countByYearCat[v.year][tp] || 0) + 1;
@@ -3709,7 +4039,6 @@
       const yearlyTotals = yearsAsc.map(y =>
         categories.reduce((sum, cat) => sum + ((countByYearCat[y] && countByYearCat[y][cat.key]) || 0), 0)
       );
-      // 時間帯モードでは積み上げ棒グラフの「上＝朝 → 下＝深夜」になるよう下から順に並べる
       const trendCategories = styleShiftMode === 'time' ? categories.slice().reverse() : categories;
       const trendDatasets = trendCategories.map(cat => ({
         label: cat.label,
@@ -3787,9 +4116,9 @@
               <tr><th class="py-1.5 px-2">日時</th><th class="py-1.5 px-2">タイトル</th><th class="py-1.5 px-2">タグ</th><th class="py-1.5 px-2 text-right">時間</th></tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-              ${sorted.map(s => `<tr class="hover:bg-purple-50/40">
+              ${sorted.map(s => `<tr class="hover:bg-purple-50/40 ${s.isError ? 'bg-slate-50/80 text-slate-400' : ''}">
                 <td class="py-1.5 px-2 font-mono text-slate-500 whitespace-nowrap">${escapeHtml(s.dateStr)}</td>
-                <td class="py-1.5 px-2 font-bold ${s.isError ? 'line-through text-slate-400' : 'text-slate-800'}">${escapeHtml(s.title)}</td>
+                <td class="py-1.5 px-2">${renderExcludedTitleHtml(s.title, !!s.isError, '回数除外')}</td>
                 <td class="py-1.5 px-2"><div class="flex flex-wrap gap-1">${(s.tags || []).map(t => renderColoredBadge(t, getStreamCatColor(t))).join('')}</div></td>
                 <td class="py-1.5 px-2 font-mono text-right whitespace-nowrap text-slate-600">${formatSecondsHMS(getStreamSeconds(s))}</td>
               </tr>`).join('')}
@@ -3801,22 +4130,27 @@
 
     function showVideoDetailModal(title, list, mode) {
       const sorted = (list || []).slice().sort((a, b) => b.sortKey.localeCompare(a.sortKey));
+      const validCnt = sorted.filter(v => mode === 'full' ? !isFullVideoExcluded(v) : !v.isExcluded).length;
       const html = sorted.length
         ? `<table class="w-full text-left">
             <thead class="bg-purple-50 text-purple-950">
               <tr><th class="py-1.5 px-2">投稿日</th><th class="py-1.5 px-2">タイトル</th><th class="py-1.5 px-2">種別/分類</th><th class="py-1.5 px-2">作曲者</th></tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-              ${sorted.map(v => `<tr class="hover:bg-purple-50/40">
-                <td class="py-1.5 px-2 font-mono text-slate-500 whitespace-nowrap">${escapeHtml(v.dateStr)}</td>
-                <td class="py-1.5 px-2 font-bold text-slate-800">${escapeHtml(v.title)}</td>
-                <td class="py-1.5 px-2">${mode === 'full' ? renderColoredBadge(v.type || 'Solo', getFullTypeColor(v.type)) : renderColoredBadge(v.category || 'Shortのみ', getShortCatColor(v.category))}</td>
-                <td class="py-1.5 px-2 text-slate-600">${escapeHtml(v.composer || '-')}</td>
-              </tr>`).join('')}
+              ${sorted.map(v => {
+                const excluded = mode === 'full' ? isFullVideoExcluded(v) : !!v.isExcluded;
+                return `<tr class="hover:bg-purple-50/40 ${excluded ? 'bg-slate-50/80 text-slate-400' : ''}">
+                  <td class="py-1.5 px-2 font-mono text-slate-500 whitespace-nowrap">${escapeHtml(v.dateStr)}</td>
+                  <td class="py-1.5 px-2">${renderExcludedTitleHtml(v.title, excluded, '回数除外')}</td>
+                  <td class="py-1.5 px-2">${mode === 'full' ? renderColoredBadge(v.type || 'Solo', getFullTypeColor(v.type)) : renderColoredBadge(v.category || 'Shortのみ', getShortCatColor(v.category))}</td>
+                  <td class="py-1.5 px-2 text-slate-600">${escapeHtml(v.composer || '-')}</td>
+                </tr>`;
+              }).join('')}
             </tbody>
           </table>`
         : '<div class="py-8 text-center text-slate-400">該当する動画データがありません</div>';
-      openDetailModal(title, `${sorted.length}本`, html);
+      const countText = validCnt === sorted.length ? `${sorted.length}本` : `${validCnt}本（除外含む全${sorted.length}件）`;
+      openDetailModal(title, countText, html);
     }
 
     function showEventDetailModal(title, list) {
@@ -3851,16 +4185,155 @@
               <tr><th class="py-1.5 px-2">日付</th><th class="py-1.5 px-2">曲名</th><th class="py-1.5 px-2">種別</th><th class="py-1.5 px-2">配信 / LIVE</th></tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-              ${sorted.map(r => `<tr class="hover:bg-purple-50/40">
-                <td class="py-1.5 px-2 font-mono text-slate-500 whitespace-nowrap">${escapeHtml(r.dateStr)}</td>
-                <td class="py-1.5 px-2 font-bold text-slate-800">${escapeHtml(r.title)}</td>
-                <td class="py-1.5 px-2">${renderColoredBadge(normalizeSetlistType(r.type), getSetlistTypeColor(r.type))}</td>
-                <td class="py-1.5 px-2 text-slate-600">${r.url ? `<a href="${escapeHtml(r.url)}" target="_blank" rel="noopener" class="text-purple-700 hover:underline">${escapeHtml(r.streamTitle)} ↗</a>` : escapeHtml(r.streamTitle)}</td>
-              </tr>`).join('')}
+              ${sorted.map(r => {
+                const excluded = isSetlistRowExcluded(r);
+                return `<tr class="hover:bg-purple-50/40 ${excluded ? 'bg-slate-50/80 text-slate-400' : ''}">
+                  <td class="py-1.5 px-2 font-mono text-slate-500 whitespace-nowrap">${escapeHtml(r.dateStr)}</td>
+                  <td class="py-1.5 px-2">${renderExcludedTitleHtml(r.title, excluded, '回数除外')}</td>
+                  <td class="py-1.5 px-2">${renderColoredBadge(normalizeSetlistType(r.type), getSetlistTypeColor(r.type))}</td>
+                  <td class="py-1.5 px-2 text-slate-600">${escapeHtml(r.streamTitle)}</td>
+                </tr>`;
+              }).join('')}
             </tbody>
           </table>`
         : '<div class="py-8 text-center text-slate-400">該当するセットリストデータがありません</div>';
       openDetailModal(title, `${sorted.length}曲`, html);
+    }
+
+    function showSetlistSessionsDetailModal(title, list) {
+      const sessMap = {};
+      (list || []).forEach(r => {
+        const tp = normalizeSetlistType(r.type);
+        const key = `${r.dateStr}_${r.streamTitle}_${tp}`;
+        if (!sessMap[key]) {
+          sessMap[key] = {
+            dateStr: r.dateStr,
+            sortKey: r.sortKey,
+            streamTitle: r.streamTitle,
+            type: tp,
+            songsCount: 0
+          };
+        }
+        sessMap[key].songsCount += 1;
+      });
+      const sessions = Object.values(sessMap).sort((a, b) => b.sortKey.localeCompare(a.sortKey));
+      const html = sessions.length
+        ? `<table class="w-full text-left">
+            <thead class="bg-purple-50 text-purple-950">
+              <tr><th class="py-1.5 px-2">日付</th><th class="py-1.5 px-2">配信 / LIVE タイトル</th><th class="py-1.5 px-2">種別</th><th class="py-1.5 px-2 text-right">曲数</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              ${sessions.map(s => `<tr class="hover:bg-purple-50/40">
+                <td class="py-1.5 px-2 font-mono text-slate-500 whitespace-nowrap">${escapeHtml(s.dateStr)}</td>
+                <td class="py-1.5 px-2 font-bold text-slate-800">${escapeHtml(s.streamTitle)}</td>
+                <td class="py-1.5 px-2">${renderColoredBadge(s.type, getSetlistTypeColor(s.type))}</td>
+                <td class="py-1.5 px-2 font-mono text-right whitespace-nowrap text-slate-600">${s.songsCount}曲</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>`
+        : '<div class="py-8 text-center text-slate-400">該当する開催データがありません</div>';
+      openDetailModal(title, `${sessions.length}回`, html);
+    }
+
+    // レパートリー・初披露・定番曲・レア曲クリック用：重複を除いた一意の曲リスト
+    let uniqueSongsModalState = { title: '', list: [], sortMode: 'count' };
+
+    function setUniqueSongsModalSort(mode) {
+      uniqueSongsModalState.sortMode = mode;
+      renderUniqueSongsDetailModal();
+    }
+
+    function toggleUniqueSongsModalDateSort() {
+      const next = uniqueSongsModalState.sortMode === 'date_desc' ? 'date_asc' : 'date_desc';
+      setUniqueSongsModalSort(next);
+    }
+
+    function showUniqueSongsDetailModal(title, list) {
+      uniqueSongsModalState = { title, list: list || [], sortMode: 'count' };
+      renderUniqueSongsDetailModal();
+    }
+
+    function renderUniqueSongsDetailModal() {
+      const { title, list, sortMode } = uniqueSongsModalState;
+      const map = {};
+      list.forEach(r => {
+        const k = String(r.title || '').trim();
+        if (!k) return;
+        if (!map[k]) map[k] = [];
+        map[k].push(r);
+      });
+
+      const entries = Object.entries(map).map(([songTitle, rows]) => {
+        const latest = rows.slice().sort((a, b) => b.sortKey.localeCompare(a.sortKey))[0];
+        return { songTitle, rows, latest };
+      });
+
+      entries.sort((a, b) => {
+        if (sortMode === 'date_desc') {
+          return b.latest.sortKey.localeCompare(a.latest.sortKey)
+            || b.rows.length - a.rows.length
+            || a.songTitle.localeCompare(b.songTitle, 'ja');
+        }
+        if (sortMode === 'date_asc') {
+          return a.latest.sortKey.localeCompare(b.latest.sortKey)
+            || b.rows.length - a.rows.length
+            || a.songTitle.localeCompare(b.songTitle, 'ja');
+        }
+        return b.rows.length - a.rows.length
+          || b.latest.sortKey.localeCompare(a.latest.sortKey)
+          || a.songTitle.localeCompare(b.songTitle, 'ja');
+      });
+
+      const activeBtnCls = 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-700 text-white shadow-sm transition cursor-pointer';
+      const idleBtnCls = 'px-2.5 py-1 rounded-lg text-[11px] font-bold text-purple-800 hover:bg-purple-100 transition cursor-pointer';
+      const dateArrow = sortMode === 'date_desc' ? ' ↓' : (sortMode === 'date_asc' ? ' ↑' : ' ⇅');
+      const countArrow = sortMode === 'count' ? ' ↓' : ' ⇅';
+
+      const toolbarHtml = entries.length
+        ? `<div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+            <span class="text-[11px] text-slate-400">列見出しクリックでも並び替えできます</span>
+            <div class="inline-flex items-center gap-1 bg-purple-50 p-0.5 rounded-xl border border-purple-100">
+              <button type="button" onclick="setUniqueSongsModalSort('count')" class="${sortMode === 'count' ? activeBtnCls : idleBtnCls}">回数順</button>
+              <button type="button" onclick="setUniqueSongsModalSort('date_desc')" class="${sortMode === 'date_desc' ? activeBtnCls : idleBtnCls}">最新歌唱日 ↓</button>
+              <button type="button" onclick="setUniqueSongsModalSort('date_asc')" class="${sortMode === 'date_asc' ? activeBtnCls : idleBtnCls}">最新歌唱日 ↑</button>
+            </div>
+          </div>`
+        : '';
+
+      const html = entries.length
+        ? `${toolbarHtml}<table class="w-full text-left">
+            <thead class="bg-purple-50 text-purple-950 sticky top-0 z-10">
+              <tr>
+                <th class="py-1.5 px-2">曲名</th>
+                <th class="py-1.5 px-2 text-center cursor-pointer hover:bg-purple-100 select-none whitespace-nowrap" onclick="setUniqueSongsModalSort('count')">回数${countArrow}</th>
+                <th class="py-1.5 px-2">種別内訳</th>
+                <th class="py-1.5 px-2 text-right cursor-pointer hover:bg-purple-100 select-none whitespace-nowrap" onclick="toggleUniqueSongsModalDateSort()">最新歌唱日${dateArrow}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              ${entries.map(({ songTitle, rows, latest }) => {
+                const typeCounts = {};
+                rows.forEach(r => {
+                  const tp = normalizeSetlistType(r.type);
+                  typeCounts[tp] = (typeCounts[tp] || 0) + 1;
+                });
+                const badgesHtml = Object.entries(typeCounts)
+                  .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'ja'))
+                  .map(([tp, cnt]) => {
+                    const tc = getSetlistTypeColor(tp);
+                    return `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold whitespace-nowrap" style="background-color:${tc}1a; color:${tc}; border:1px solid ${tc}44;">${escapeHtml(tp)} ${cnt}</span>`;
+                  }).join('');
+                return `<tr class="hover:bg-purple-50/40">
+                  <td class="py-1.5 px-2 font-bold text-slate-800">${escapeHtml(songTitle)}</td>
+                  <td class="py-1.5 px-2 text-center"><span class="px-1.5 py-0.5 rounded-md text-[10px] font-black bg-purple-100/70 text-purple-700 border border-purple-200">×${rows.length}</span></td>
+                  <td class="py-1.5 px-2"><div class="flex flex-wrap gap-1">${badgesHtml}</div></td>
+                  <td class="py-1.5 px-2 font-mono text-right text-slate-500 whitespace-nowrap">${escapeHtml(latest.dateStr)}</td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>`
+        : '<div class="py-8 text-center text-slate-400">該当する曲がありません</div>';
+      openDetailModal(title, `${entries.length}曲（延べ ${list.length}回）`, html);
     }
 
     function openEditModal(kind, uid) {
@@ -3901,6 +4374,9 @@
         extraWrap.classList.remove('hidden');
         extraLabel.textContent = '作曲者';
         extraInput.value = item.composer || '';
+        flagWrap.classList.remove('hidden');
+        flagLabel.textContent = '本数カウントから除外する（作曲者未記入など）';
+        flagInput.checked = isFullVideoExcluded(item);
       } else if (kind === 'short') {
         document.getElementById('editModalHeading').textContent = '✏️ Short動画を編集';
         tagLabel.textContent = '分類 (Full関連 / Shortのみ)';
@@ -3920,11 +4396,14 @@
         extraInput.value = item.channel || classifyEventChannel(item.title, item.type);
       } else if (kind === 'setlist') {
         document.getElementById('editModalHeading').textContent = '✏️ セトリ曲を編集';
-        tagLabel.textContent = '種別（歌枠 / LIVE (solo) / LIVE (Comp) / カラオケ 等）';
+        tagLabel.textContent = '種別（歌枠 / LIVE (solo) / LIVE (Comp) / LIVE (Guest) / カラオケ 等）';
         tagsInput.value = normalizeSetlistType(item.type);
         extraWrap.classList.remove('hidden');
         extraLabel.textContent = '配信・LIVEタイトル';
         extraInput.value = item.streamTitle || '';
+        flagWrap.classList.remove('hidden');
+        flagLabel.textContent = '回数カウントから除外する';
+        flagInput.checked = isSetlistRowExcluded(item);
       }
 
       document.getElementById('editModal').classList.remove('hidden');
@@ -3957,6 +4436,7 @@
           item.title = titleVal || item.title;
           item.type = tagsVal || 'Solo';
           item.composer = extraVal;
+          item.isExcluded = flagVal;
         }
       } else if (kind === 'short') {
         const item = appData.shortVideos.find(x => x._uid === uid);
@@ -3979,6 +4459,7 @@
           item.title = titleVal || item.title;
           item.type = normalizeSetlistType(tagsVal || '歌枠');
           item.streamTitle = extraVal || item.streamTitle;
+          item.isExcluded = flagVal;
         }
       }
 
@@ -3989,7 +4470,489 @@
     }
 
     // =========================================================================
-    // 16. 初期化
+    // 16. TAB 7: 📅 自動連携カレンダー（Excelデータ自動マッピング）
+    // =========================================================================
+    let autoCalViewMode = 'month'; // 'month' | 'year'
+    let autoCalYear = 2026;
+    let autoCalMonth = new Date().getMonth() + 1;
+    let autoCalFilterOpen = false;
+    let autoCalHolidays = {};
+    let autoCalHolidaysLoaded = false;
+
+    const autoCalHiddenSources = new Set(); // 'full' | 'short' | 'event' | 'stream'
+    const autoCalHiddenStreamTags = new Set(); // 配信タグ単位の非表示管理
+
+    const AUTO_CAL_SOURCES = [
+      { key: 'stream', label: '配信',      emoji: '🎙️', color: '#9333ea' },
+      { key: 'full',   label: 'Full動画',  emoji: '🎬', color: '#d946ef' },
+      { key: 'short',  label: 'Short動画', emoji: '📱', color: '#0ea5e9' },
+      { key: 'event',  label: 'イベント',  emoji: '🎪', color: '#ec4899' }
+    ];
+
+    async function autoCalFetchHolidays(targetYear = null) {
+      try {
+        if (!autoCalHolidaysLoaded) {
+          autoCalHolidaysLoaded = true;
+          const res = await fetch('https://holidays-jp.github.io/api/v1/date.json');
+          if (res.ok) Object.assign(autoCalHolidays, await res.json());
+          const yearsToFetch = [2020, 2021, 2022, 2023, 2024, 2025];
+          for (const y of yearsToFetch) {
+            try {
+              const ry = await fetch(`https://holidays-jp.github.io/api/v1/${y}/date.json`);
+              if (ry.ok) Object.assign(autoCalHolidays, await ry.json());
+            } catch (e) {}
+          }
+        }
+        if (targetYear) {
+          const ry = await fetch(`https://holidays-jp.github.io/api/v1/${targetYear}/date.json`);
+          if (ry.ok) Object.assign(autoCalHolidays, await ry.json());
+        }
+      } catch (e) {
+        console.warn('祝日データの取得をスキップしました:', e);
+      }
+      if (activeTab === 'calendar') {
+        renderAutoCalBody();
+      }
+    }
+
+    function setAutoCalViewMode(mode) {
+      autoCalViewMode = mode;
+      const yearBtn = document.getElementById('autoCalViewBtn-year');
+      const monthBtn = document.getElementById('autoCalViewBtn-month');
+      const activeCls = 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-700 text-white shadow-sm transition cursor-pointer';
+      const idleCls = 'px-2.5 py-1 rounded-lg text-[11px] font-bold text-purple-800 hover:bg-purple-100 transition cursor-pointer';
+      if (yearBtn) yearBtn.className = mode === 'year' ? activeCls : idleCls;
+      if (monthBtn) monthBtn.className = mode === 'month' ? activeCls : idleCls;
+      renderAutoCalendarSection();
+    }
+
+    async function autoCalChangeYear(delta) {
+      autoCalYear += delta;
+      await autoCalFetchHolidays(autoCalYear);
+      renderAutoCalendarSection();
+    }
+
+    async function autoCalChangeMonth(delta) {
+      autoCalMonth += delta;
+      if (autoCalMonth < 1) {
+        autoCalMonth = 12;
+        autoCalYear -= 1;
+        await autoCalFetchHolidays(autoCalYear);
+      } else if (autoCalMonth > 12) {
+        autoCalMonth = 1;
+        autoCalYear += 1;
+        await autoCalFetchHolidays(autoCalYear);
+      }
+      renderAutoCalendarSection();
+    }
+
+    function autoCalSelectMonth(m) {
+      autoCalMonth = m;
+      renderAutoCalendarSection();
+    }
+
+    function toggleAutoCalFilterPanel() {
+      autoCalFilterOpen = !autoCalFilterOpen;
+      const panel = document.getElementById('autoCalFilterPanel');
+      const chev = document.getElementById('autoCalFilterChevron');
+      if (panel) panel.classList.toggle('hidden', !autoCalFilterOpen);
+      if (chev) chev.textContent = autoCalFilterOpen ? '▲' : '▼';
+    }
+
+    function getAutoCalYearRawItems(year) {
+      const items = [];
+
+      // 1. 配信（Streaming）：エラー除外以外をすべて対象
+      (appData.streams || []).forEach(s => {
+        if (s.year !== year || s.isError) return;
+        const tags = (s.tags && s.tags.length) ? s.tags : ['雑談'];
+        const primaryTag = tags[0];
+        const mm = String(s.month).padStart(2, '0');
+        const dd = String(s.day).padStart(2, '0');
+        const timePart = (s.dateStr && s.dateStr.includes(' ')) ? s.dateStr.split(' ')[1] : '';
+        items.push({
+          uid: s._uid,
+          source: 'stream',
+          dateKey: `${year}-${mm}-${dd}`,
+          year: s.year, month: s.month, day: s.day,
+          sortKey: s.sortKey || `${year}${mm}${dd}0000`,
+          title: s.title,
+          sub: timePart ? `${timePart} · ${tags.join('/')}` : tags.join('/'),
+          tags,
+          emoji: tags.some(t => /歌枠|カラオケ/i.test(t)) ? '🎤' : (tags.some(t => /ゲーム/i.test(t)) ? '🎮' : '🎙️'),
+          color: getStreamCatColor(primaryTag),
+          raw: s
+        });
+      });
+
+      // 2. Full動画（Song）：回数除外以外を対象
+      (appData.fullVideos || []).forEach(v => {
+        if (v.year !== year || isFullVideoExcluded(v)) return;
+        const mm = String(v.month).padStart(2, '0');
+        const dd = String(v.day).padStart(2, '0');
+        items.push({
+          uid: v._uid,
+          source: 'full',
+          dateKey: `${year}-${mm}-${dd}`,
+          year: v.year, month: v.month, day: v.day,
+          sortKey: `${year}${mm}${dd}0001`,
+          title: v.title,
+          sub: v.type || 'Solo',
+          tags: [],
+          emoji: '🎬',
+          color: getFullTypeColor(v.type),
+          raw: v
+        });
+      });
+
+      // 3. Short動画（Short）：Xのみ除外以外を対象
+      (appData.shortVideos || []).forEach(v => {
+        if (v.year !== year || v.isExcluded) return;
+        const mm = String(v.month).padStart(2, '0');
+        const dd = String(v.day).padStart(2, '0');
+        items.push({
+          uid: v._uid,
+          source: 'short',
+          dateKey: `${year}-${mm}-${dd}`,
+          year: v.year, month: v.month, day: v.day,
+          sortKey: `${year}${mm}${dd}0002`,
+          title: v.title,
+          sub: v.category || 'Shortのみ',
+          tags: [],
+          emoji: '📱',
+          color: getShortCatColor(v.category),
+          raw: v
+        });
+      });
+
+      // 4. イベント（Ivent）
+      (appData.events || []).forEach(e => {
+        if (e.year !== year) return;
+        const mm = String(e.month).padStart(2, '0');
+        const dd = String(e.day).padStart(2, '0');
+        items.push({
+          uid: e._uid,
+          source: 'event',
+          dateKey: `${year}-${mm}-${dd}`,
+          year: e.year, month: e.month, day: e.day,
+          sortKey: `${year}${mm}${dd}0000`,
+          title: e.title,
+          sub: e.type || 'イベント',
+          tags: [],
+          emoji: '🎪',
+          color: getEventTypeColor(e.type),
+          raw: e
+        });
+      });
+
+      return items;
+    }
+
+    function filterAutoCalItems(rawItems) {
+      const q = (document.getElementById('autoCalSearchInput')?.value || '').trim().toLowerCase();
+      return rawItems.filter(it => {
+        if (autoCalHiddenSources.has(it.source)) return false;
+        if (it.source === 'stream') {
+          const allTagsHidden = it.tags.length > 0 && it.tags.every(t => autoCalHiddenStreamTags.has(t));
+          if (allTagsHidden) return false;
+        }
+        if (q) {
+          const hay = `${it.title} ${it.sub} ${(it.tags || []).join(' ')}`.toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+    }
+
+    function autoCalToggleSource(srcKey) {
+      if (autoCalHiddenSources.has(srcKey)) autoCalHiddenSources.delete(srcKey);
+      else autoCalHiddenSources.add(srcKey);
+      renderAutoCalFilters();
+      renderAutoCalBody();
+    }
+
+    function autoCalToggleStreamTag(tag) {
+      if (autoCalHiddenStreamTags.has(tag)) autoCalHiddenStreamTags.delete(tag);
+      else autoCalHiddenStreamTags.add(tag);
+      renderAutoCalFilters();
+      renderAutoCalBody();
+    }
+
+    function autoCalApplyPreset(preset) {
+      autoCalHiddenSources.clear();
+      autoCalHiddenStreamTags.clear();
+      if (preset === 'none') {
+        AUTO_CAL_SOURCES.forEach(s => autoCalHiddenSources.add(s.key));
+      } else if (preset === 'no_chat') {
+        autoCalHiddenStreamTags.add('雑談');
+      } else if (preset === 'works_events') {
+        autoCalHiddenSources.add('stream');
+      }
+      renderAutoCalFilters();
+      renderAutoCalBody();
+    }
+
+    function renderAutoCalendarSection() {
+      autoCalFetchHolidays(autoCalYear);
+
+      const yearLabel = document.getElementById('autoCalYearLabel');
+      if (yearLabel) yearLabel.textContent = `${autoCalYear}年`;
+
+      const monthNavWrap = document.getElementById('calMonthNavWrap');
+      if (monthNavWrap) {
+        monthNavWrap.classList.toggle('hidden', autoCalViewMode !== 'month');
+      }
+
+      const monthPillsEl = document.getElementById('autoCalMonthPills');
+      if (monthPillsEl) {
+        monthPillsEl.innerHTML = Array.from({ length: 12 }, (_, i) => {
+          const m = i + 1;
+          const active = m === autoCalMonth;
+          const cls = active
+            ? 'px-2 py-0.5 rounded-lg text-[11px] font-black bg-purple-700 text-white shadow-sm transition cursor-pointer whitespace-nowrap'
+            : 'px-1.5 py-0.5 rounded-lg text-[11px] font-bold text-purple-800 hover:bg-purple-100 transition cursor-pointer whitespace-nowrap';
+          return `<button type="button" onclick="autoCalSelectMonth(${m})" class="${cls}">${m}月</button>`;
+        }).join('');
+      }
+
+      renderAutoCalFilters();
+      renderAutoCalBody();
+    }
+
+    function renderAutoCalFilters() {
+      const rawItems = getAutoCalYearRawItems(autoCalYear);
+
+      const srcWrap = document.getElementById('autoCalSourceFilters');
+      if (srcWrap) {
+        srcWrap.innerHTML = AUTO_CAL_SOURCES.map(src => {
+          const cnt = rawItems.filter(it => it.source === src.key).length;
+          const hidden = autoCalHiddenSources.has(src.key);
+          const style = !hidden
+            ? `background-color:${src.color}; color:#ffffff; border:1px solid ${src.color};`
+            : `background-color:transparent; color:${src.color}; border:1px solid ${src.color}66; opacity:0.5;`;
+          return `<button type="button" onclick="autoCalToggleSource('${src.key}')" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold transition cursor-pointer" style="${style}">${src.emoji} ${src.label} (${cnt})</button>`;
+        }).join('');
+      }
+
+      const tagWrap = document.getElementById('autoCalStreamTagFilters');
+      if (tagWrap) {
+        const tagCounts = {};
+        rawItems.filter(it => it.source === 'stream').forEach(it => {
+          (it.tags || []).forEach(t => {
+            tagCounts[t] = (tagCounts[t] || 0) + 1;
+          });
+        });
+        const tagEntries = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]);
+        tagWrap.innerHTML = tagEntries.length
+          ? tagEntries.map(([tag, cnt]) => {
+              const hidden = autoCalHiddenStreamTags.has(tag);
+              const c = getStreamCatColor(tag);
+              const style = !hidden
+                ? `background-color:${c}; color:#ffffff; border:1px solid ${c};`
+                : `background-color:transparent; color:${c}; border:1px solid ${c}66; opacity:0.5;`;
+              const safeTag = escapeHtml(tag).replace(/'/g, "\\'");
+              return `<button type="button" onclick="autoCalToggleStreamTag('${safeTag}')" class="px-2 py-0.5 rounded-full text-[10px] font-bold transition cursor-pointer" style="${style}">${escapeHtml(tag)} (${cnt})</button>`;
+            }).join('')
+          : '<span class="text-[10px] text-slate-400">配信データなし</span>';
+      }
+
+      const filterBtnText = document.getElementById('autoCalFilterBtnText');
+      if (filterBtnText) {
+        const hiddenCount = autoCalHiddenSources.size + autoCalHiddenStreamTags.size;
+        filterBtnText.textContent = hiddenCount > 0 ? `フィルター (${hiddenCount}件OFF)` : 'フィルター';
+      }
+    }
+
+    function renderAutoCalBody() {
+      const container = document.getElementById('autoCalBodyContainer');
+      const countBadge = document.getElementById('autoCalCountBadge');
+      if (!container) return;
+
+      const rawItems = getAutoCalYearRawItems(autoCalYear);
+      const visibleItems = filterAutoCalItems(rawItems);
+
+      window._autoCalItemsByUid = {};
+      window._autoCalItemsByDate = {};
+      visibleItems.forEach(it => {
+        window._autoCalItemsByUid[it.uid] = it;
+        if (!window._autoCalItemsByDate[it.dateKey]) window._autoCalItemsByDate[it.dateKey] = [];
+        window._autoCalItemsByDate[it.dateKey].push(it);
+      });
+      Object.values(window._autoCalItemsByDate).forEach(arr => {
+        arr.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
+      });
+
+      if (autoCalViewMode === 'month') {
+        const monthItems = visibleItems.filter(it => it.month === autoCalMonth);
+        if (countBadge) countBadge.textContent = `${autoCalYear}年${autoCalMonth}月：${monthItems.length}件`;
+        container.innerHTML = buildAutoCalMonthHtml(autoCalYear, autoCalMonth);
+      } else {
+        if (countBadge) countBadge.textContent = `${autoCalYear}年：${visibleItems.length}件`;
+        container.innerHTML = buildAutoCalYearHtml(autoCalYear);
+      }
+    }
+
+    function buildAutoCalMonthHtml(year, month) {
+      const firstDow = new Date(year, month - 1, 1).getDay();
+      const daysInMonth = new Date(year, month, 0).getDate();
+      const dows = ['日', '月', '火', '水', '木', '金', '土'];
+
+      let html = `<table class="w-full table-fixed border-collapse text-xs">
+        <thead>
+          <tr class="bg-purple-50 text-purple-950 border-b border-purple-100">`;
+      dows.forEach((d, idx) => {
+        const colCls = idx === 0 ? 'text-rose-600' : (idx === 6 ? 'text-sky-600' : '');
+        html += `<th class="py-2 px-1 text-center font-black ${colCls}">${d}</th>`;
+      });
+      html += `</tr></thead><tbody class="divide-y divide-slate-100">`;
+
+      let day = 1;
+      const totalCells = Math.ceil((firstDow + daysInMonth) / 7) * 7;
+      for (let cellIdx = 0; cellIdx < totalCells; cellIdx++) {
+        if (cellIdx % 7 === 0) html += `<tr class="divide-x divide-slate-100">`;
+        const dow = cellIdx % 7;
+
+        if (cellIdx < firstDow || day > daysInMonth) {
+          html += `<td class="cal-hatch h-28 align-top"></td>`;
+        } else {
+          const d = day++;
+          const mm = String(month).padStart(2, '0');
+          const dd = String(d).padStart(2, '0');
+          const dateKey = `${year}-${mm}-${dd}`;
+          const holName = autoCalHolidays[dateKey];
+          const isRed = dow === 0 || !!holName;
+          const isBlue = !isRed && dow === 6;
+          const bgCls = isRed ? 'cal-sun' : (isBlue ? 'cal-sat' : '');
+          const numCls = isRed ? 'text-rose-600' : (isBlue ? 'text-sky-600' : 'text-slate-700');
+          const dayItems = (window._autoCalItemsByDate && window._autoCalItemsByDate[dateKey]) || [];
+
+          html += `<td class="cal-month-cell h-28 p-1.5 align-top transition cursor-pointer ${bgCls}" onclick="openAutoCalDayModal('${dateKey}')">
+            <div class="flex items-start justify-between gap-1 mb-1">
+              <span class="font-black text-xs ${numCls}">${d}</span>
+              ${holName ? `<span class="cal-hol-label text-[9px] font-bold text-rose-500 truncate text-right">${escapeHtml(holName)}</span>` : ''}
+            </div>
+            <div class="space-y-1">
+              ${dayItems.map(it => `
+                <button type="button" onclick="event.stopPropagation(); openAutoCalItemDetail('${it.uid}')" class="cal-item-chip w-full" style="background-color:${it.color}1a; color:${it.color}; border-color:${it.color}44;" title="${escapeHtml(it.title)} (${escapeHtml(it.sub)})">
+                  <span class="shrink-0 leading-tight">${it.emoji}</span>
+                  <div class="min-w-0 flex-1">
+                    <div class="font-bold text-slate-800 leading-snug line-clamp-2">${escapeHtml(it.title)}</div>
+                    <div class="text-[9px] opacity-80 truncate">${escapeHtml(it.sub)}</div>
+                  </div>
+                </button>
+              `).join('')}
+            </div>
+          </td>`;
+        }
+        if (cellIdx % 7 === 6) html += `</tr>`;
+      }
+      html += `</tbody></table>`;
+      return html;
+    }
+
+    function buildAutoCalYearHtml(year) {
+      let html = `<table class="cal-table text-xs border-collapse">
+        <colgroup>
+          <col style="width:38px;" />
+          ${Array.from({ length: 12 }, () => '<col style="width:156px;" />').join('')}
+        </colgroup>
+        <thead>
+          <tr>
+            <th class="cal-sticky-corner py-2 px-1 text-center font-black">日</th>`;
+      for (let m = 1; m <= 12; m++) {
+        html += `<th class="cal-sticky-month py-2 px-2 text-center font-black border-l border-purple-100 cursor-pointer hover:underline" onclick="autoCalSelectMonth(${m}); setAutoCalViewMode('month');" title="${m}月の月間表示へ切替">${m}月</th>`;
+      }
+      html += `</tr></thead><tbody>`;
+
+      for (let d = 1; d <= 31; d++) {
+        const isMilestone = d % 5 === 0;
+        const rowCls = isMilestone ? 'cal-milestone-row' : '';
+        const dayNumCls = isMilestone ? 'font-black text-purple-700' : 'font-bold text-slate-500';
+        html += `<tr class="${rowCls}">
+          <th class="cal-sticky-day py-1.5 px-1 text-center font-mono text-[11px] border-t border-slate-100 ${dayNumCls}">${d}</th>`;
+
+        for (let m = 1; m <= 12; m++) {
+          const dateObj = new Date(year, m - 1, d);
+          const isValid = dateObj.getFullYear() === year && dateObj.getMonth() === m - 1 && dateObj.getDate() === d;
+          if (!isValid) {
+            html += `<td class="cal-hatch border-t border-l border-slate-100"></td>`;
+            continue;
+          }
+
+          const mm = String(m).padStart(2, '0');
+          const dd = String(d).padStart(2, '0');
+          const dateKey = `${year}-${mm}-${dd}`;
+          const dow = dateObj.getDay();
+          const holName = autoCalHolidays[dateKey];
+          const isRed = dow === 0 || !!holName;
+          const isBlue = !isRed && dow === 6;
+          const bgCls = isRed ? 'cal-sun' : (isBlue ? 'cal-sat' : '');
+          const dayItems = (window._autoCalItemsByDate && window._autoCalItemsByDate[dateKey]) || [];
+
+          html += `<td class="cal-cell-valid border-t border-l border-slate-100 p-1 align-top cursor-pointer ${bgCls}" onclick="openAutoCalDayModal('${dateKey}')">
+            ${holName ? `<div class="cal-hol-label text-[9px] font-bold text-rose-500 text-right truncate mb-0.5">${escapeHtml(holName)}</div>` : ''}
+            <div class="space-y-1">
+              ${dayItems.map(it => `
+                <button type="button" onclick="event.stopPropagation(); openAutoCalItemDetail('${it.uid}')" class="cal-item-chip w-full" style="background-color:${it.color}1a; color:${it.color}; border-color:${it.color}44;" title="${escapeHtml(it.title)} (${escapeHtml(it.sub)})">
+                  <span class="shrink-0 leading-tight">${it.emoji}</span>
+                  <span class="cal-title-ellipsis font-bold text-slate-800 flex-1">${escapeHtml(it.title)}</span>
+                </button>
+              `).join('')}
+            </div>
+          </td>`;
+        }
+        html += `</tr>`;
+      }
+      html += `</tbody></table>`;
+      return html;
+    }
+
+    function openAutoCalItemDetail(uid) {
+      const it = window._autoCalItemsByUid && window._autoCalItemsByUid[uid];
+      if (!it) return;
+      if (it.source === 'stream') {
+        showStreamDetailModal(`🎙️ ${it.raw.dateStr} 配信詳細`, [it.raw]);
+      } else if (it.source === 'full') {
+        showVideoDetailModal(`🎬 ${it.raw.dateStr} Full動画詳細`, [it.raw], 'full');
+      } else if (it.source === 'short') {
+        showVideoDetailModal(`📱 ${it.raw.dateStr} Short動画詳細`, [it.raw], 'short');
+      } else if (it.source === 'event') {
+        showEventDetailModal(`🎪 ${it.raw.dateStr} イベント詳細`, [it.raw]);
+      }
+    }
+
+    function openAutoCalDayModal(dateKey) {
+      const items = (window._autoCalItemsByDate && window._autoCalItemsByDate[dateKey]) || [];
+      const [y, m, d] = dateKey.split('-').map(Number);
+      const dows = ['日', '月', '火', '水', '木', '金', '土'];
+      const dowStr = dows[new Date(y, m - 1, d).getDay()];
+      const holName = autoCalHolidays[dateKey];
+      const titleStr = `📅 ${y}年${m}月${d}日 (${dowStr})${holName ? ` · ${holName}` : ''}`;
+
+      const html = items.length
+        ? `<div class="space-y-2">
+            ${items.map(it => `
+              <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-50/80 border border-slate-100">
+                <div class="flex items-start gap-2 min-w-0">
+                  <span class="text-base shrink-0">${it.emoji}</span>
+                  <div class="min-w-0">
+                    <div class="font-bold text-slate-800 break-words">${escapeHtml(it.title)}</div>
+                    <div class="mt-0.5 flex flex-wrap items-center gap-1.5">
+                      ${renderColoredBadge(it.sub, it.color)}
+                    </div>
+                  </div>
+                </div>
+                <button type="button" onclick="closeDetailModal(); openEditModal('${it.source}','${it.uid}')" class="px-2.5 py-1 rounded-lg border border-purple-200 text-[11px] font-bold text-purple-700 hover:bg-purple-50 shrink-0 cursor-pointer">✏️ 編集</button>
+              </div>
+            `).join('')}
+          </div>`
+        : '<div class="py-8 text-center text-slate-400">この日の活動データはありません</div>';
+
+      openDetailModal(titleStr, `${items.length}件`, html);
+    }
+
+    // =========================================================================
+    // 17. 初期化
     // =========================================================================
     window.addEventListener('DOMContentLoaded', () => {
       initThemeMode();
