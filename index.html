@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <script>
+ <script>
   // URLに ?exclude=1 が付いていたら、このブラウザを除外対象として記憶する
   if (location.search.includes('exclude=1')) {
     localStorage.setItem('ga_exclude', 'true');
@@ -17,7 +17,7 @@
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-</script>
+</script>  
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>雪見 活動レポート ダッシュボード</title>
@@ -283,52 +283,35 @@
          TAB 2: 🎪 イベント
          =================================================================== -->
     <section id="tab-event" class="hidden space-y-3">
-      <div class="grid grid-cols-3 gap-2.5">
-        <div class="bg-white rounded-2xl p-3 card-shadow border border-pink-100">
-          <div class="text-[11px] font-bold text-slate-500 truncate">🎪 イベント総数</div>
-          <div class="mt-0.5 flex items-baseline gap-1.5">
+      <!-- イベント総数＆種別内訳サマリー（オンライン／リアルは参考情報として控えめに表示） -->
+      <div class="bg-white rounded-2xl px-3.5 py-2.5 card-shadow border border-pink-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-baseline gap-1.5 pr-3 sm:border-r border-slate-100">
+            <span class="text-xs font-bold text-slate-500">🎪 イベント総数</span>
             <span id="evKpiTotal" class="text-xl sm:text-2xl font-black text-slate-900">0</span>
             <span class="text-[11px] font-bold text-slate-400">回</span>
           </div>
+          <div id="evTypeSummaryBadges" class="flex flex-wrap items-center gap-1.5"></div>
         </div>
-        <div class="bg-white rounded-2xl p-3 card-shadow border border-pink-100">
-          <div class="text-[11px] font-bold text-pink-600 truncate">🎤 リアルイベント</div>
-          <div class="mt-0.5 flex items-baseline gap-1.5">
-            <span id="evKpiReal" class="text-xl sm:text-2xl font-black text-pink-600">0</span>
-            <span class="text-[11px] font-bold text-slate-400">回</span>
-            <span id="evKpiRealPct" class="ml-auto px-1.5 py-0.5 rounded-full bg-pink-50 text-pink-700 text-[10px] font-bold">0%</span>
-          </div>
-        </div>
-        <div class="bg-white rounded-2xl p-3 card-shadow border border-sky-100">
-          <div class="text-[11px] font-bold text-sky-600 truncate">💻 オンラインイベント</div>
-          <div class="mt-0.5 flex items-baseline gap-1.5">
-            <span id="evKpiNet" class="text-xl sm:text-2xl font-black text-sky-600">0</span>
-            <span class="text-[11px] font-bold text-slate-400">回</span>
-            <span id="evKpiNetPct" class="ml-auto px-1.5 py-0.5 rounded-full bg-sky-50 text-sky-700 text-[10px] font-bold">0%</span>
-          </div>
+        <div id="evChannelRef" class="text-[10px] font-semibold text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 self-start sm:self-auto whitespace-nowrap">
+          参考：リアル 0回 / オンライン 0回
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-          <h3 class="text-xs sm:text-sm font-black text-slate-800 mb-0.5">🔄 リアル / オンライン比率</h3>
-          <p class="text-[10px] text-slate-400 mb-1.5">凡例クリックで非表示・円クリックで詳細</p>
-          <div class="h-44"><canvas id="chartEventChannel"></canvas></div>
-        </div>
-
-        <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+        <div class="md:col-span-5 bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
           <h3 class="text-xs sm:text-sm font-black text-slate-800 mb-0.5">🏷️ イベント種別内訳</h3>
           <p class="text-[10px] text-slate-400 mb-1.5">凡例クリックで非表示・円クリックで詳細</p>
-          <div class="h-44"><canvas id="chartEventType"></canvas></div>
+          <div class="h-48"><canvas id="chartEventType"></canvas></div>
         </div>
 
-        <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+        <div class="md:col-span-7 bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
           <div class="flex items-center justify-between mb-0.5">
-            <h3 class="text-xs sm:text-sm font-black text-slate-800">📅 月別 イベント推移</h3>
+            <h3 class="text-xs sm:text-sm font-black text-slate-800">📅 月別 イベント推移（種別別）</h3>
             <span id="badgeEventCount" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-pink-50 text-pink-700">0回</span>
           </div>
           <p class="text-[10px] text-slate-400 mb-1.5">凡例クリックで非表示・棒クリックで詳細</p>
-          <div class="h-44"><canvas id="chartEventMonthly"></canvas></div>
+          <div class="h-48"><canvas id="chartEventMonthly"></canvas></div>
         </div>
       </div>
 
@@ -343,8 +326,8 @@
               <tr>
                 <th class="py-1.5 px-2.5 rounded-tl-lg cursor-pointer hover:bg-purple-100" onclick="toggleSortOrder('event')">日付 ⇅</th>
                 <th class="py-1.5 px-2.5">タイトル</th>
-                <th class="py-1.5 px-2.5">区分</th>
                 <th class="py-1.5 px-2.5">種別</th>
+                <th class="py-1.5 px-2.5 text-slate-500">参考（形式）</th>
                 <th class="py-1.5 px-2 rounded-tr-lg text-center w-10">編集</th>
               </tr>
             </thead>
@@ -666,7 +649,7 @@
         <div class="flex flex-wrap items-center gap-1.5 text-xs">
           <select id="cmpYearA" onchange="renderArchiveComparison()" class="px-2.5 py-1.5 rounded-xl border border-purple-200 font-bold text-purple-900 bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-300 cursor-pointer"></select>
           <span class="font-black text-slate-400 px-0.5">vs</span>
-          <select id="cmpYearB" onchange="renderArchiveComparison()" class="px-2.5 py-1.5 rounded-xl border border-slate-200 font-bold text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-purple-300 cursor-pointer"></select>
+          <select id="cmpYearB" onchange="renderArchiveComparison()" class="px-2.5 py-1.5 rounded-xl border border-sky-200 font-bold text-sky-900 bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-300 cursor-pointer"></select>
         </div>
       </div>
 
@@ -707,17 +690,17 @@
         </div>
       </div>
 
-      <!-- 下段：活動スタイル変化（構成比比較＆2020年〜推移・横並び） -->
+      <!-- 下段：活動スタイル変化（実数比較＆2020年〜推移・横並び） -->
       <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80 space-y-2.5">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <h3 class="text-xs sm:text-sm font-black text-slate-800">🔄 活動スタイル変化（構成比比較）</h3>
-            <p id="styleShiftDesc" class="text-[10px] text-slate-400">時間帯シフト：朝・昼・夕方・夜・深夜の割合変化（棒クリックで詳細一覧）</p>
+            <h3 class="text-xs sm:text-sm font-black text-slate-800">🔄 活動スタイル変化（実数比較）</h3>
+            <p id="styleShiftDesc" class="text-[10px] text-slate-400">時間帯シフト：朝・昼・夕方・夜・深夜の配信回数変化（棒クリックで詳細一覧）</p>
           </div>
           <div class="flex flex-wrap items-center gap-1 bg-purple-50/80 p-1 rounded-xl border border-purple-100 text-[11px] font-bold">
             <button id="styleBtn-time" onclick="setStyleShiftMode('time')" class="px-2.5 py-1 rounded-lg bg-purple-700 text-white shadow-sm transition cursor-pointer">🕐 時間帯</button>
             <button id="styleBtn-streamCat" onclick="setStyleShiftMode('streamCat')" class="px-2.5 py-1 rounded-lg text-purple-800 hover:bg-purple-100 transition cursor-pointer">🎙️ 配信カテゴリ</button>
-            <button id="styleBtn-eventChannel" onclick="setStyleShiftMode('eventChannel')" class="px-2.5 py-1 rounded-lg text-purple-800 hover:bg-purple-100 transition cursor-pointer">🎪 イベント区分</button>
+            <button id="styleBtn-eventChannel" onclick="setStyleShiftMode('eventChannel')" class="px-2.5 py-1 rounded-lg text-purple-800 hover:bg-purple-100 transition cursor-pointer">🎪 イベント種別</button>
             <button id="styleBtn-fullType" onclick="setStyleShiftMode('fullType')" class="px-2.5 py-1 rounded-lg text-purple-800 hover:bg-purple-100 transition cursor-pointer">🎬 動画種別</button>
           </div>
         </div>
@@ -725,18 +708,20 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
           <div class="bg-slate-50/70 rounded-xl p-2.5 border border-slate-100">
             <div class="flex items-center justify-between mb-1.5">
-              <span class="text-[11px] font-black text-slate-700">⚖️ 選択年度の割合比較（％）</span>
+              <span class="text-[11px] font-black text-slate-700">⚖️ 選択年度の実数比較</span>
               <span id="stylePairBadge" class="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full"></span>
             </div>
-            <div class="h-56"><canvas id="chartStyleComparePair"></canvas></div>
+            <div class="max-h-64 overflow-y-auto custom-scroll pr-1">
+              <div id="styleComparePairWrap" class="h-56"><canvas id="chartStyleComparePair"></canvas></div>
+            </div>
           </div>
 
           <div class="bg-slate-50/70 rounded-xl p-2.5 border border-slate-100">
             <div class="flex items-center justify-between mb-1.5">
-              <span class="text-[11px] font-black text-slate-700">📊 年別 構成比推移（2020年〜）</span>
-              <span class="text-[10px] text-slate-400">割合（%）の変化トレンド</span>
+              <span class="text-[11px] font-black text-slate-700">📊 年別 実数推移（2020年〜）</span>
+              <span class="text-[10px] text-slate-400">実数（回数・件数・本数）の変化トレンド</span>
             </div>
-            <div class="h-56"><canvas id="chartStyleYearlyTrend"></canvas></div>
+            <div class="h-64"><canvas id="chartStyleYearlyTrend"></canvas></div>
           </div>
         </div>
       </div>
@@ -870,7 +855,6 @@
       'コラボ歌枠': '#6366f1'
     };
 
-    // 積み上げは下から「深夜 → 夜 → 夕方 → 昼 → 朝」、凡例は reverse: true で左から「朝 → 昼 → 夕方 → 夜 → 深夜」
     const TIME_BANDS = [
       { key: 'midnight', label: '深夜 (0-4時)', short: '深夜', color: '#3b82f6' },
       { key: 'night',    label: '夜 (19-23時)', short: '夜',   color: '#c084fc' },
@@ -989,7 +973,6 @@
       const title = String(st.title || '');
       if (/接続エラー/i.test(title)) return false;
       const tags = Array.isArray(st.tags) ? st.tags : [];
-      const joined = `${tags.join(' ')} ${title}`;
       if (/live|ライブ/i.test(tags.join(' ')) && !/歌枠/i.test(tags.join(' '))) return false;
       return tags.some(t => /歌枠|カラオケ|弾き語り/i.test(t)) || /歌枠/i.test(title);
     }
@@ -1484,12 +1467,10 @@
         }
       }
       const s = String(val).trim();
-      // 日本語形式: 2023年8月24日 7:00 (JST)
       let m = s.match(/(\d{4})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日(?:\s*(\d{1,2})\s*[:：時]\s*(\d{1,2}))?/);
       if (m) {
         return { year: +m[1], month: +m[2], day: +m[3], hour: m[4] != null ? +m[4] : 12, minute: m[5] != null ? +m[5] : 0 };
       }
-      // スラッシュ・ハイフン形式: 2025/05/12 21:30 or 2025-05-12
       m = s.match(/(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})(?:[ T](\d{1,2}):(\d{1,2}))?/);
       if (m) {
         return { year: +m[1], month: +m[2], day: +m[3], hour: m[4] != null ? +m[4] : 12, minute: m[5] != null ? +m[5] : 0 };
@@ -1724,7 +1705,6 @@
         const type = normalizeSetlistType(r[2] || '歌枠');
         const rawSongs = String(r[3] || '').trim();
         if (!rawSongs) continue;
-        // URL取得（E列セルのハイパーリンクもチェック）
         let url = String(r[4] || '').trim();
         if (ws) {
           const cellRef = XLSX.utils.encode_cell({ r: i, c: 4 });
@@ -1735,7 +1715,6 @@
           const mUrl = url.match(/https?:\/\/[^\s)]+/i);
           url = mUrl ? mUrl[0] : '';
         }
-        // 改行・半角カンマのみで分割（読点「、」では分割しない）
         const songs = rawSongs.split(/[\r\n,]+/).map(s => s.trim()).filter(Boolean);
         const mm = String(dt.month).padStart(2, '0');
         const dd = String(dt.day).padStart(2, '0');
@@ -1813,7 +1792,6 @@
           }
         });
       });
-      // 最低でも 2020〜2026 の範囲を補完可能にするが、実データがある年＋2020年を確実に含める
       const maxY = ySet.size ? Math.max(...ySet) : 2026;
       for (let y = MIN_VISUAL_YEAR; y <= maxY; y++) {
         ySet.add(y);
@@ -2149,37 +2127,34 @@
       const tot = events.length;
 
       document.getElementById('evKpiTotal').textContent = tot;
-      document.getElementById('evKpiReal').textContent = realEvs.length;
-      document.getElementById('evKpiNet').textContent = netEvs.length;
-      document.getElementById('evKpiRealPct').textContent = tot ? `${Math.round((realEvs.length / tot) * 100)}%` : '0%';
-      document.getElementById('evKpiNetPct').textContent = tot ? `${Math.round((netEvs.length / tot) * 100)}%` : '0%';
       document.getElementById('badgeEventCount').textContent = `${tot}回`;
 
-      // リアル/オンライン比率
-      createChart('eventChannel', 'chartEventChannel', {
-        type: 'doughnut',
-        data: {
-          labels: tot ? ['リアル', 'オンライン'] : ['データなし'],
-          datasets: [{ data: tot ? [realEvs.length, netEvs.length] : [1], backgroundColor: tot ? ['#ec4899', '#0ea5e9'] : ['#e2e8f0'], borderWidth: 1 }]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false, cutout: '62%',
-          onClick: (evt, elems) => {
-            if (!elems.length || !tot) return;
-            const ch = elems[0].index === 0 ? 'リアル' : 'オンライン';
-            showEventDetailModal(`🎪 ${ch}イベント一覧`, ch === 'リアル' ? realEvs : netEvs);
-          },
-          plugins: {
-            centerText: { label: '合計', unit: '回' },
-            legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10 } }
-          }
-        }
-      });
+      const refEl = document.getElementById('evChannelRef');
+      if (refEl) {
+        const realPct = tot ? Math.round((realEvs.length / tot) * 100) : 0;
+        const netPct = tot ? Math.round((netEvs.length / tot) * 100) : 0;
+        refEl.textContent = `参考：リアル ${realEvs.length}回 (${realPct}%) / オンライン ${netEvs.length}回 (${netPct}%)`;
+      }
 
-      // イベント種別内訳
       const typeMap = {};
       events.forEach(e => { const t = e.type || 'その他'; typeMap[t] = (typeMap[t] || 0) + 1; });
       const typeEntries = Object.entries(typeMap).sort((a, b) => b[1] - a[1]);
+
+      const badgesEl = document.getElementById('evTypeSummaryBadges');
+      if (badgesEl) {
+        badgesEl.innerHTML = typeEntries.length
+          ? typeEntries.map(([tp, cnt]) => {
+              const c = getEventTypeColor(tp);
+              const pct = tot ? Math.round((cnt / tot) * 100) : 0;
+              return `<button onclick="openEventTypeModal('${escapeHtml(tp).replace(/'/g, "\\'")}')" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition hover:opacity-80 cursor-pointer" style="background-color:${c}18; color:${c}; border:1px solid ${c}44;">
+                <span>${escapeHtml(tp)}</span>
+                <span class="font-black">${cnt}回</span>
+                <span class="text-[10px] opacity-75">(${pct}%)</span>
+              </button>`;
+            }).join('')
+          : '<span class="text-xs text-slate-400">データなし</span>';
+      }
+
       createChart('eventType', 'chartEventType', {
         type: 'doughnut',
         data: {
@@ -2204,25 +2179,17 @@
         }
       });
 
-      // 月別イベント推移
       const months = Array.from({ length: 12 }, (_, i) => `${i + 1}月`);
-      const mReal = Array(12).fill(0);
-      const mNet = Array(12).fill(0);
-      events.forEach(e => {
-        if (e.month < 1 || e.month > 12) return;
-        const ch = e.channel || classifyEventChannel(e.title, e.type);
-        if (ch === 'リアル') mReal[e.month - 1]++;
-        else mNet[e.month - 1]++;
-      });
+      const activeTypes = typeEntries.length ? typeEntries.map(x => x[0]) : ['ライブ'];
+      const evMonthlyDS = activeTypes.map(tp => ({
+        label: tp,
+        data: Array.from({ length: 12 }, (_, mi) => events.filter(e => (e.type || 'その他') === tp && e.month === mi + 1).length),
+        backgroundColor: getEventTypeColor(tp),
+        borderRadius: 3
+      }));
       createChart('eventMonthly', 'chartEventMonthly', {
         type: 'bar',
-        data: {
-          labels: months,
-          datasets: [
-            { label: 'リアル', data: mReal, backgroundColor: '#ec4899', borderRadius: 3 },
-            { label: 'オンライン', data: mNet, backgroundColor: '#0ea5e9', borderRadius: 3 }
-          ]
-        },
+        data: { labels: months, datasets: evMonthlyDS },
         options: {
           responsive: true, maintainAspectRatio: false,
           onClick: (evt, elems) => {
@@ -2244,6 +2211,11 @@
       renderEventTable();
     }
 
+    function openEventTypeModal(tp) {
+      const events = filterBySelectedYear(appData.events);
+      showEventDetailModal(`🏷️ イベント種別「${tp}」一覧`, events.filter(e => (e.type || 'その他') === tp));
+    }
+
     function renderEventTable() {
       const events = filterBySelectedYear(appData.events).sort((a, b) =>
         sortOrders.event === 'desc' ? b.sortKey.localeCompare(a.sortKey) : a.sortKey.localeCompare(b.sortKey)
@@ -2256,12 +2228,11 @@
       }
       tbody.innerHTML = events.map(e => {
         const ch = e.channel || classifyEventChannel(e.title, e.type);
-        const chColor = ch === 'リアル' ? '#ec4899' : '#0ea5e9';
         return `<tr class="hover:bg-purple-50/40">
           <td class="py-1.5 px-2.5 font-mono text-slate-500 whitespace-nowrap">${escapeHtml(e.dateStr)}</td>
           <td class="py-1.5 px-2.5 font-bold text-slate-800">${escapeHtml(e.title)}</td>
-          <td class="py-1.5 px-2.5">${renderColoredBadge(ch, chColor)}</td>
           <td class="py-1.5 px-2.5">${renderColoredBadge(e.type || 'その他', getEventTypeColor(e.type))}</td>
+          <td class="py-1.5 px-2.5 text-[11px] text-slate-400 whitespace-nowrap">${escapeHtml(ch)}</td>
           <td class="py-1.5 px-2 text-center"><button onclick="openEditModal('event','${e._uid}')" class="text-slate-400 hover:text-purple-700 cursor-pointer" title="編集">✏️</button></td>
         </tr>`;
       }).join('');
@@ -2317,7 +2288,6 @@
       const months = Array.from({ length: 12 }, (_, i) => `${i + 1}月`);
       const mDiv = getActiveMonthDivisor([], fulls, shorts, [], []);
 
-      // Full 月別
       const fullTypes = Array.from(new Set(fulls.map(v => v.type || 'Solo')));
       const fullMonthlyDS = (fullTypes.length ? fullTypes : ['Solo']).map(tp => ({
         label: tp,
@@ -2346,7 +2316,6 @@
         }
       });
 
-      // Full 種別内訳
       const ftMap = {};
       fulls.forEach(v => { const t = v.type || 'Solo'; ftMap[t] = (ftMap[t] || 0) + 1; });
       const ftEntries = Object.entries(ftMap).sort((a, b) => b[1] - a[1]);
@@ -2376,7 +2345,6 @@
 
       renderFullCreditChart();
 
-      // Short 月別
       const shortCats = ['Full関連', 'Shortのみ'];
       const shortMonthlyDS = shortCats.map(cat => ({
         label: cat,
@@ -2405,7 +2373,6 @@
         }
       });
 
-      // Short カテゴリ内訳
       const scCounts = shortCats.map(c => shorts.filter(v => v.category === c).length);
       const hasSh = shorts.length > 0;
       createChart('shortType', 'chartShortType', {
@@ -2432,7 +2399,6 @@
         }
       });
 
-      // Short 作曲者別
       const shCompMap = {};
       shorts.forEach(v => {
         splitMultiValues(v.composer).forEach(c => { shCompMap[c] = (shCompMap[c] || 0) + 1; });
@@ -2533,7 +2499,6 @@
       const validStreams = streams.filter(s => !s.isError);
       const mDiv = getActiveMonthDivisor(streams, [], [], [], []);
 
-      // 配信カテゴリ構成比
       const catMap = {};
       validStreams.forEach(s => {
         (s.tags && s.tags.length ? s.tags : ['その他']).forEach(t => { catMap[t] = (catMap[t] || 0) + 1; });
@@ -2558,10 +2523,9 @@
       });
       renderCustomLegend('legendStreamCat', 'streamCat', catLabels, catVals, catCols);
 
-      // 月別配信数推移（時間帯別）
       const months = Array.from({ length: 12 }, (_, i) => `${i + 1}月`);
       const tbDS = TIME_BANDS.map(tb => ({
-        label: tb.short,
+        label: tb.label,
         data: Array.from({ length: 12 }, (_, mi) => validStreams.filter(s => s.month === mi + 1 && getTimeBandKey(s.hour) === tb.key).length),
         backgroundColor: tb.color,
         borderRadius: 2
@@ -2587,10 +2551,8 @@
         }
       });
 
-      // ヒートマップ（曜日 × 時間帯）
       renderStreamHeatmap(validStreams);
 
-      // ログ種別フィルタ更新
       const tagSel = document.getElementById('logTagFilter');
       if (tagSel) {
         const cur = tagSel.value;
@@ -2609,7 +2571,7 @@
         { idx: 1, label: '月' }, { idx: 2, label: '火' }, { idx: 3, label: '水' },
         { idx: 4, label: '木' }, { idx: 5, label: '金' }, { idx: 6, label: '土' }, { idx: 0, label: '日' }
       ];
-      const bands = TIME_BANDS.slice().reverse(); // 朝→昼→夕方→夜→深夜
+      const bands = TIME_BANDS.slice().reverse();
       const grid = {};
       let maxVal = 0;
 
@@ -2642,7 +2604,7 @@
       dows.forEach(d => { html += `<th class="text-center font-bold text-slate-600 py-0.5">${d.label}</th>`; });
       html += `</tr></thead><tbody>`;
       bands.forEach(b => {
-        html += `<tr><td class="font-bold text-slate-600 whitespace-nowrap pr-1">${b.short}</td>`;
+        html += `<tr><td class="font-bold text-slate-600 whitespace-nowrap pr-1 text-[10px]">${b.label}</td>`;
         dows.forEach(d => {
           const cnt = grid[b.key][d.idx].length;
           const st = getHeatStyle(cnt);
@@ -2726,7 +2688,6 @@
       const types = Array.from(new Set(setlists.map(r => normalizeSetlistType(r.type))));
       const activeTypes = types.length ? types : ['歌枠'];
 
-      // 1段目左：月別開催回数推移（種別別）
       const sessDS = activeTypes.map(tp => ({
         label: tp,
         data: Array.from({ length: 12 }, (_, mi) => {
@@ -2762,7 +2723,6 @@
         }
       });
 
-      // 1段目右：月別歌唱曲数推移（種別別）
       const songsDS = activeTypes.map(tp => ({
         label: tp,
         data: Array.from({ length: 12 }, (_, mi) => setlists.filter(r => normalizeSetlistType(r.type) === tp && r.month === mi + 1).length),
@@ -2805,7 +2765,6 @@
       const topHeading = document.getElementById('topSungHeading');
       if (topHeading) topHeading.textContent = `🌟 ${meta.label} 最多歌唱曲ランキング TOP10`;
 
-      // 曲ごとの集計
       const songMap = {};
       const sessMap = {};
       scoped.forEach(r => {
@@ -2824,7 +2783,6 @@
       const staplePct = uniqueSongs.length ? Math.round((stapleSongs.length / uniqueSongs.length) * 100) : 0;
       const rarePct = uniqueSongs.length ? 100 - staplePct : 0;
 
-      // 初披露曲の判定（対象年より前の全年度データと照合）
       let debutSongs = [];
       let debutLabel = '初披露';
       if (selectedYear !== 'all') {
@@ -2842,7 +2800,6 @@
       }
       const debutPct = uniqueSongs.length ? ((debutSongs.length / uniqueSongs.length) * 100).toFixed(1) : '0.0';
 
-      // 種別ごとの1回平均
       const avgByType = {};
       Object.values(sessMap).forEach(s => {
         if (!avgByType[s.type]) avgByType[s.type] = { sess: 0, songs: 0 };
@@ -2855,7 +2812,6 @@
         return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold" style="background:${c}15; color:${c}; border:1px solid ${c}44;">${escapeHtml(tp)} ${avg}曲</span>`;
       }).join('');
 
-      // 最多回
       const maxSess = Object.values(sessMap).sort((a, b) => b.songs.length - a.songs.length)[0] || null;
 
       window._slSummaryCache = {
@@ -2920,7 +2876,6 @@
         }
       }
 
-      // TOP10 ランキング（同率順位対応）
       const sortedSongs = Object.entries(songMap).sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0], 'ja'));
       const topList = [];
       let rank = 1;
@@ -2939,9 +2894,12 @@
           const maxCnt = topList[0].rows.length;
           topWrap.innerHTML = `<div class="space-y-1">${topList.map(item => {
             const pct = Math.max(8, Math.round((item.rows.length / maxCnt) * 100));
-            const medal = item.rank === 1 ? '🥇' : item.rank === 2 ? '🥈' : item.rank === 3 ? '🥉' : `${item.rank}位`;
+            let rankBadgeStyle = 'background-color:#f3e8ff; color:#7e22ce;';
+            if (item.rank === 1) rankBadgeStyle = 'background-color:#eab308; color:#ffffff; box-shadow:0 1px 3px rgba(234,179,8,0.45);';
+            else if (item.rank === 2) rankBadgeStyle = 'background-color:#94a3b8; color:#ffffff; box-shadow:0 1px 3px rgba(148,163,184,0.45);';
+            else if (item.rank === 3) rankBadgeStyle = 'background-color:#b45309; color:#ffffff; box-shadow:0 1px 3px rgba(180,83,9,0.4);';
             return `<button onclick="openSongHistoryModal('${escapeHtml(item.title).replace(/'/g, "\\'")}')" class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-purple-50 transition text-left cursor-pointer">
-              <span class="w-7 text-center text-[11px] font-black text-purple-700 shrink-0">${medal}</span>
+              <span class="w-5 h-5 rounded-full inline-flex items-center justify-center text-[11px] font-black shrink-0" style="${rankBadgeStyle}">${item.rank}</span>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between gap-2 text-xs">
                   <span class="font-bold text-slate-800 truncate">${escapeHtml(item.title)}</span>
@@ -3049,7 +3007,6 @@
     // 14. TAB 6: ⚖️ 比較（通算サマリー＋月別比較＋6軸レーダー＋活動スタイル変化）
     // =========================================================================
     function renderArchiveSection() {
-      // 通算サマリー（全年度合算）
       const validStreams = appData.streams.filter(s => !s.isError);
       const totalSeconds = appData.streams.reduce((a, b) => a + getStreamSeconds(b), 0);
       const totalFull = appData.fullVideos.length;
@@ -3091,10 +3048,10 @@
           : 'px-2.5 py-1 rounded-lg text-purple-800 hover:bg-purple-100 transition cursor-pointer';
       });
       const descMap = {
-        time: '時間帯シフト：朝・昼・夕方・夜・深夜の割合変化（棒クリックで詳細一覧）',
-        streamCat: '配信カテゴリシフト：雑談・企画・ゲーム・歌枠・コラボ等の割合変化（棒クリックで詳細一覧）',
-        eventChannel: 'イベント区分シフト：リアル vs オンラインの比率変化（棒クリックで詳細一覧）',
-        fullType: '動画種別シフト：Full動画の Solo / Collab / Original / Live action 等の比率変化（棒クリックで詳細一覧）'
+        time: '時間帯シフト：朝・昼・夕方・夜・深夜の配信回数変化（棒クリックで詳細一覧）',
+        streamCat: '配信カテゴリシフト：全配信カテゴリの回数変化（棒クリックで詳細一覧）',
+        eventChannel: 'イベント種別シフト：ライブ・リリイベ・ファンミ・特典会などの種別ごとの回数変化（棒クリックで詳細一覧）',
+        fullType: '動画種別シフト：Full動画の Solo / Collab / Original / Live action 等の本数変化（棒クリックで詳細一覧）'
       };
       const descEl = document.getElementById('styleShiftDesc');
       if (descEl) descEl.textContent = descMap[mode] || '';
@@ -3108,87 +3065,98 @@
 
       const selA = document.getElementById('cmpYearA');
       const selB = document.getElementById('cmpYearB');
-      const selM = document.getElementById('cmpMetric');
-      if (!selA || !selB || !selM) return;
+      const selMetric = document.getElementById('cmpMetric');
+      if (!selA || !selB || !selMetric) return;
 
       const yA = Number(selA.value) || years[0];
-      const rawB = selB.value;
-      const metric = selM.value || 'hours';
+      const valB = selB.value || (years.length > 1 ? String(years[1]) : String(years[0]));
+      const metric = selMetric.value || 'hours';
 
       let poolB = [];
       let labelB = '';
-      if (rawB === 'avg_all') {
+      if (valB === 'avg_all') {
         poolB = years.filter(y => y !== yA);
         if (!poolB.length) poolB = [yA];
         labelB = '過去全年平均';
-      } else if (rawB === 'avg_3y') {
-        poolB = years.filter(y => y < yA).slice(0, 3);
-        if (!poolB.length) poolB = years.filter(y => y !== yA).slice(0, 3);
+      } else if (valB === 'avg_3y') {
+        const prevs = years.filter(y => y < yA).slice(0, 3);
+        poolB = prevs.length ? prevs : years.filter(y => y !== yA).slice(0, 3);
         if (!poolB.length) poolB = [yA];
-        labelB = '直近3年平均';
+        labelB = `直近${poolB.length}年平均`;
       } else {
-        const yBNum = Number(rawB) || years[0];
-        poolB = [yBNum];
-        labelB = `${yBNum}年`;
+        const yBNum = Number(valB);
+        poolB = [years.includes(yBNum) ? yBNum : years[0]];
+        labelB = `${poolB[0]}年`;
       }
 
       const metricMeta = {
-        hours:   { unit: 'h',  fixed1: true,  label: '配信時間' },
-        streams: { unit: '回', fixed1: false, label: '配信回数' },
-        full:    { unit: '本', fixed1: false, label: 'Full動画' },
-        short:   { unit: '本', fixed1: false, label: 'Short動画' },
-        singing: { unit: '回', fixed1: false, label: '歌枠回数' },
-        songs:   { unit: '曲', fixed1: false, label: '歌唱曲数' },
-        events:  { unit: '回', fixed1: false, label: 'イベント回数' }
-      }[metric] || { unit: '', fixed1: false, label: '' };
+        hours:   { label: '配信時間',     unit: 'h',  fixed1: true  },
+        streams: { label: '配信回数',     unit: '回', fixed1: false },
+        full:    { label: 'Full動画',     unit: '本', fixed1: false },
+        short:   { label: 'Short動画',    unit: '本', fixed1: false },
+        singing: { label: '歌枠回数',     unit: '回', fixed1: false },
+        songs:   { label: '歌唱曲数',     unit: '曲', fixed1: false },
+        events:  { label: 'イベント回数', unit: '回', fixed1: false }
+      }[metric] || { label: '配信時間', unit: 'h', fixed1: true };
 
       const arrA = (matrix[yA] && matrix[yA][metric]) ? matrix[yA][metric].slice() : Array(12).fill(0);
       const arrB = Array.from({ length: 12 }, (_, mi) => {
-        const sum = poolB.reduce((acc, y) => acc + ((matrix[y] && matrix[y][metric][mi]) || 0), 0);
-        return Math.round((sum / poolB.length) * 10) / 10;
+        const sum = poolB.reduce((acc, y) => acc + ((matrix[y] && matrix[y][metric] && matrix[y][metric][mi]) || 0), 0);
+        return Math.round((sum / Math.max(1, poolB.length)) * 10) / 10;
       });
 
-      // 同期間比の計算（yAにデータがある最終月までで比較）
-      let lastActiveIdx = 11;
+      // 有効月（対象年Aでデータが存在する最終月）を基準に同期間比を計算
+      let lastActiveM = 0;
       for (let i = 11; i >= 0; i--) {
-        if (arrA[i] > 0) { lastActiveIdx = i; break; }
+        if ((matrix[yA]?.hoursSec[i] || 0) > 0 || (matrix[yA]?.streams[i] || 0) > 0 || (matrix[yA]?.full[i] || 0) > 0 || (matrix[yA]?.events[i] || 0) > 0) {
+          lastActiveM = i + 1;
+          break;
+        }
       }
-      const sumA = arrA.reduce((a, b) => a + b, 0);
-      const sumB = arrB.reduce((a, b) => a + b, 0);
-      const samePeriodA = arrA.slice(0, lastActiveIdx + 1).reduce((a, b) => a + b, 0);
-      const samePeriodB = arrB.slice(0, lastActiveIdx + 1).reduce((a, b) => a + b, 0);
-      const diffPct = samePeriodB > 0 ? (((samePeriodA - samePeriodB) / samePeriodB) * 100).toFixed(1) : null;
-      const fmt = v => metricMeta.fixed1 ? Number(v).toFixed(1) : String(Math.round(v * 10) / 10);
+      const cmpMonths = lastActiveM || 12;
+      const sumA = arrA.slice(0, cmpMonths).reduce((a, b) => a + b, 0);
+      const sumBSame = arrB.slice(0, cmpMonths).reduce((a, b) => a + b, 0);
+      const sumBAll = arrB.reduce((a, b) => a + b, 0);
+      const fmtVal = v => metricMeta.fixed1 ? v.toFixed(1) : (Number.isInteger(v) ? String(v) : v.toFixed(1));
+
+      let pctText = '-';
+      let pctColor = 'text-slate-500';
+      if (sumBSame > 0) {
+        const pct = ((sumA - sumBSame) / sumBSame) * 100;
+        pctText = `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`;
+        pctColor = pct >= 0 ? 'text-emerald-600' : 'text-rose-500';
+      } else if (sumA > 0) {
+        pctText = '+100%↑';
+        pctColor = 'text-emerald-600';
+      }
 
       const statsBar = document.getElementById('cmpStatsBar');
       if (statsBar) {
-        const pctColor = diffPct === null ? 'text-slate-500' : (Number(diffPct) >= 0 ? 'text-emerald-600' : 'text-rose-600');
-        const pctStr = diffPct === null ? '-' : `${Number(diffPct) >= 0 ? '+' : ''}${diffPct}%`;
         statsBar.innerHTML = `
           <div>
-            <div class="text-[10px] text-slate-400 font-bold">${yA}年 (1〜${lastActiveIdx + 1}月)</div>
-            <div class="text-sm font-black text-purple-700">${fmt(sumA)}${metricMeta.unit}</div>
+            <div class="text-[10px] text-slate-400 font-bold">${yA}年 (1〜${cmpMonths}月)</div>
+            <div class="text-sm font-black text-purple-700">${fmtVal(sumA)}${metricMeta.unit}</div>
           </div>
           <div>
             <div class="text-[10px] text-slate-400 font-bold">${escapeHtml(labelB)}</div>
-            <div class="text-sm font-black text-slate-700">${fmt(sumB)}${metricMeta.unit}</div>
+            <div class="text-sm font-black text-sky-600">${fmtVal(sumBAll)}${metricMeta.unit}</div>
           </div>
           <div>
-            <div class="text-[10px] text-slate-400 font-bold">同期間比 (1〜${lastActiveIdx + 1}月)</div>
-            <div class="text-sm font-black ${pctColor}">${pctStr}</div>
+            <div class="text-[10px] text-slate-400 font-bold">同期間 比</div>
+            <div class="text-sm font-black ${pctColor}">${pctText}</div>
           </div>
         `;
       }
 
-      // 左：月別指標比較グラフ（棒クリックで詳細モーダル）
-      const months = Array.from({ length: 12 }, (_, i) => `${i + 1}月`);
+      // 1) 月別指標比較グラフ
+      const monthsLabel = Array.from({ length: 12 }, (_, i) => `${i + 1}月`);
       createChart('archiveCompare', 'chartArchiveCompare', {
         type: 'bar',
         data: {
-          labels: months,
+          labels: monthsLabel,
           datasets: [
             { label: `${yA}年`, data: arrA, backgroundColor: '#9333ea', borderRadius: 4, maxBarThickness: 18 },
-            { label: labelB, data: arrB, backgroundColor: '#cbd5e1', borderRadius: 4, maxBarThickness: 18 }
+            { label: labelB, data: arrB, backgroundColor: '#0ea5e9', borderRadius: 4, maxBarThickness: 18 }
           ]
         },
         options: {
@@ -3198,22 +3166,24 @@
             const m = elems[0].index + 1;
             const dsIdx = elems[0].datasetIndex;
             const targetYears = dsIdx === 0 ? [yA] : poolB;
-            const targetLbl = `${dsIdx === 0 ? `${yA}年` : labelB} ${m}月`;
-            if (metric === 'hours' || metric === 'streams') {
-              showStreamDetailModal(`📊 ${targetLbl} 配信一覧`, appData.streams.filter(s => targetYears.includes(s.year) && s.month === m));
-            } else if (metric === 'singing') {
-              showStreamDetailModal(`🎤 ${targetLbl} 歌枠一覧`, appData.streams.filter(s => targetYears.includes(s.year) && s.month === m && isSingingStream(s)));
-            } else if (metric === 'full') {
+            const targetLbl = dsIdx === 0 ? `${yA}年${m}月` : `${labelB} ${m}月`;
+            if (metric === 'full') {
               showVideoDetailModal(`🎬 ${targetLbl} Full動画一覧`, appData.fullVideos.filter(v => targetYears.includes(v.year) && v.month === m), 'full');
             } else if (metric === 'short') {
               showVideoDetailModal(`📱 ${targetLbl} Short動画一覧`, appData.shortVideos.filter(v => !v.isExcluded && targetYears.includes(v.year) && v.month === m), 'short');
+            } else if (metric === 'singing') {
+              showStreamDetailModal(`🎤 ${targetLbl} 歌枠一覧`, appData.streams.filter(s => targetYears.includes(s.year) && s.month === m && isSingingStream(s)));
             } else if (metric === 'songs') {
               showSetlistDetailModal(`🎵 ${targetLbl} 歌唱曲一覧`, appData.setlist.filter(r => targetYears.includes(r.year) && r.month === m));
             } else if (metric === 'events') {
               showEventDetailModal(`🎪 ${targetLbl} イベント一覧`, appData.events.filter(e => targetYears.includes(e.year) && e.month === m));
+            } else {
+              showStreamDetailModal(`🎙️ ${targetLbl} 配信一覧`, appData.streams.filter(s => targetYears.includes(s.year) && s.month === m));
             }
           },
-          plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10 } } },
+          plugins: {
+            legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10 } }
+          },
           scales: {
             x: { grid: { display: false }, ticks: { font: { size: 10 } } },
             y: { beginAtZero: true, ticks: { font: { size: 10 } }, grid: { color: '#f1f5f9' } }
@@ -3221,62 +3191,57 @@
         }
       });
 
-      // 右：活動バランス比較（6軸レーダーチャート）
-      renderArchiveRadar(matrix, years, yA, poolB, labelB);
-
-      // 下段：活動スタイル変化
-      renderStyleShiftCharts(years, yA, poolB, labelB);
-    }
-
-    function renderArchiveRadar(matrix, years, yA, poolB, labelB) {
-      const axes = [
-        { key: 'hours',       label: '配信時間',              unit: 'h',  fixed1: true },
+      // 2) 6軸レーダーチャート
+      const radarAxes = [
+        { key: 'hours',       label: '配信時間',              unit: 'h',  fixed1: true  },
         { key: 'streams',     label: '配信回数',              unit: '回', fixed1: false },
         { key: 'full',        label: 'Full動画',              unit: '本', fixed1: false },
         { key: 'short',       label: 'Short動画',             unit: '本', fixed1: false },
-        { key: 'songs',       label: '歌唱曲数',              unit: '曲', fixed1: false },
+        { key: 'songs',       label: '歌枠・歌唱曲数',         unit: '曲', fixed1: false },
         { key: 'radarEvents', label: 'ライブ・リリイベ/ファンミ', unit: '回', fixed1: false }
       ];
 
-      const getYearTotal = (y, k) => (matrix[y] && matrix[y][k]) ? matrix[y][k].reduce((a, b) => a + b, 0) : 0;
+      const getYearTotal = (y, k) => {
+        if (!matrix[y] || !matrix[y][k]) return 0;
+        const s = matrix[y][k].reduce((a, b) => a + b, 0);
+        return Math.round(s * 10) / 10;
+      };
 
-      const rawA = axes.map(ax => Math.round(getYearTotal(yA, ax.key) * 10) / 10);
-      const rawB = axes.map(ax => {
+      const rawA = radarAxes.map(ax => getYearTotal(yA, ax.key));
+      const rawB = radarAxes.map(ax => {
         const s = poolB.reduce((acc, y) => acc + getYearTotal(y, ax.key), 0);
-        return Math.round((s / poolB.length) * 10) / 10;
+        return Math.round((s / Math.max(1, poolB.length)) * 10) / 10;
       });
+      const maxAll = radarAxes.map(ax => Math.max(1, ...years.map(y => getYearTotal(y, ax.key))));
+      const maxPair = radarAxes.map((_, idx) => Math.max(1, rawA[idx], rawB[idx]));
+      const baseMax = radarScaleMode === 'pair' ? maxPair : maxAll;
 
-      const maxVals = axes.map((ax, i) => {
-        if (radarScaleMode === 'pair') {
-          return Math.max(1, rawA[i], rawB[i]);
-        }
-        return Math.max(1, ...years.map(y => getYearTotal(y, ax.key)));
-      });
-
-      const scoreA = rawA.map((v, i) => Math.round((v / maxVals[i]) * 100));
-      const scoreB = rawB.map((v, i) => Math.round((v / maxVals[i]) * 100));
+      const scoreA = rawA.map((v, i) => Math.min(100, Math.round((v / baseMax[i]) * 100)));
+      const scoreB = rawB.map((v, i) => Math.min(100, Math.round((v / baseMax[i]) * 100)));
 
       createChart('archiveRadar', 'chartArchiveRadar', {
         type: 'radar',
         data: {
-          labels: axes.map(a => a.label),
+          labels: radarAxes.map(a => a.label),
           datasets: [
             {
               label: `${yA}年`,
               data: scoreA,
               borderColor: '#9333ea',
               backgroundColor: 'rgba(147, 51, 234, 0.22)',
+              borderWidth: 2,
               pointBackgroundColor: '#9333ea',
-              borderWidth: 2
+              pointRadius: 3
             },
             {
               label: labelB,
               data: scoreB,
               borderColor: '#0ea5e9',
               backgroundColor: 'rgba(14, 165, 233, 0.16)',
-              pointBackgroundColor: '#0ea5e9',
               borderWidth: 2,
-              borderDash: [4, 3]
+              borderDash: [4, 3],
+              pointBackgroundColor: '#0ea5e9',
+              pointRadius: 3
             }
           ]
         },
@@ -3288,18 +3253,20 @@
               callbacks: {
                 label: ctx => {
                   const idx = ctx.dataIndex;
-                  const ax = axes[idx];
-                  const raw = ctx.datasetIndex === 0 ? rawA[idx] : rawB[idx];
-                  const rawStr = ax.fixed1 ? Number(raw).toFixed(1) : String(raw);
-                  return `${ctx.dataset.label}: ${ctx.parsed.r}点（実数 ${rawStr}${ax.unit}）`;
+                  const ax = radarAxes[idx];
+                  const val = ctx.datasetIndex === 0 ? rawA[idx] : rawB[idx];
+                  const valStr = ax.fixed1 ? val.toFixed(1) : (Number.isInteger(val) ? val : val.toFixed(1));
+                  return `${ctx.dataset.label}: ${ctx.parsed.r}点（${valStr}${ax.unit}）`;
                 }
               }
             }
           },
           scales: {
             r: {
-              min: 0, max: 100,
-              ticks: { stepSize: 25, display: false },
+              beginAtZero: true,
+              min: 0,
+              max: 100,
+              ticks: { stepSize: 25, font: { size: 9 }, backdropColor: 'transparent' },
               pointLabels: { font: { size: 10, weight: 'bold' }, color: '#334155' },
               grid: { color: '#e2e8f0' },
               angleLines: { color: '#e2e8f0' }
@@ -3307,6 +3274,9 @@
           }
         }
       });
+
+      // 3) 活動スタイル変化（実数比較＆年別実数推移）
+      renderStyleShiftCharts(years, yA, poolB, labelB);
     }
 
     function renderStyleShiftCharts(yearsDesc, yA, poolB, labelB) {
@@ -3333,37 +3303,34 @@
         const globalTagCnt = {};
         appData.streams.forEach(s => {
           if (s.isError || !countByYearCat[s.year]) return;
-          (s.tags && s.tags.length ? s.tags : ['その他']).forEach(t => {
-            globalTagCnt[t] = (globalTagCnt[t] || 0) + 1;
-          });
-        });
-        const topTags = Object.entries(globalTagCnt)
-          .filter(([t]) => t !== 'その他')
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 5)
-          .map(([t]) => t);
-        const topSet = new Set(topTags);
-        categories = topTags.map(t => ({ key: t, label: t, color: getStreamCatColor(t) }));
-        categories.push({ key: '__other__', label: 'その他', color: '#94a3b8' });
-
-        appData.streams.forEach(s => {
-          if (s.isError || !countByYearCat[s.year]) return;
-          (s.tags && s.tags.length ? s.tags : ['その他']).forEach(t => {
-            const k = topSet.has(t) ? t : '__other__';
+          const tags = (s.tags && s.tags.length ? s.tags : ['雑談']);
+          tags.forEach(t => {
+            const k = String(t || '').trim() || '雑談';
+            globalTagCnt[k] = (globalTagCnt[k] || 0) + 1;
             countByYearCat[s.year][k] = (countByYearCat[s.year][k] || 0) + 1;
           });
         });
+        const allTags = Object.entries(globalTagCnt)
+          .sort((a, b) => b[1] - a[1])
+          .map(([t]) => t);
+        categories = (allTags.length ? allTags : ['雑談']).map(t => ({
+          key: t, label: t, color: getStreamCatColor(t)
+        }));
       } else if (styleShiftMode === 'eventChannel') {
         unit = '回';
-        categories = [
-          { key: 'リアル', label: 'リアル', color: '#ec4899' },
-          { key: 'オンライン', label: 'オンライン', color: '#0ea5e9' }
-        ];
+        const globalEvTypeCnt = {};
         appData.events.forEach(e => {
           if (!countByYearCat[e.year]) return;
-          const ch = e.channel || classifyEventChannel(e.title, e.type);
-          countByYearCat[e.year][ch] = (countByYearCat[e.year][ch] || 0) + 1;
+          const tp = String(e.type || '').trim() || 'その他';
+          globalEvTypeCnt[tp] = (globalEvTypeCnt[tp] || 0) + 1;
+          countByYearCat[e.year][tp] = (countByYearCat[e.year][tp] || 0) + 1;
         });
+        const allEvTypes = Object.entries(globalEvTypeCnt)
+          .sort((a, b) => b[1] - a[1])
+          .map(([tp]) => tp);
+        categories = (allEvTypes.length ? allEvTypes : ['ライブ', 'リリイベ', 'ファンミ', '特典会']).map(tp => ({
+          key: tp, label: tp, color: getEventTypeColor(tp)
+        }));
       } else if (styleShiftMode === 'fullType') {
         unit = '本';
         const globalTypeCnt = {};
@@ -3391,6 +3358,13 @@
 
       const statsA = calcPoolStats([yA]);
       const statsB = calcPoolStats(poolB);
+      const valsA = statsA.rawCounts;
+      const valsB = poolB.length > 1 ? statsB.avgCounts : statsB.rawCounts;
+
+      const pairWrap = document.getElementById('styleComparePairWrap');
+      if (pairWrap) {
+        pairWrap.style.height = `${Math.max(224, categories.length * 30)}px`;
+      }
 
       const openStyleDetail = (targetYears, targetLabel, catObj) => {
         const titleSuffix = catObj ? `「${catObj.label}」` : '';
@@ -3400,12 +3374,10 @@
           );
           showStreamDetailModal(`🕐 ${targetLabel} 時間帯${titleSuffix} 配信一覧`, list);
         } else if (styleShiftMode === 'streamCat') {
-          const topKeys = new Set(categories.filter(c => c.key !== '__other__').map(c => c.key));
           const list = appData.streams.filter(s => {
             if (s.isError || !targetYears.includes(s.year)) return false;
             if (!catObj) return true;
-            const tags = (s.tags && s.tags.length ? s.tags : ['その他']);
-            if (catObj.key === '__other__') return tags.some(t => !topKeys.has(t));
+            const tags = (s.tags && s.tags.length ? s.tags : ['雑談']).map(t => String(t || '').trim() || '雑談');
             return tags.includes(catObj.key);
           });
           showStreamDetailModal(`🎙️ ${targetLabel} カテゴリ${titleSuffix} 配信一覧`, list);
@@ -3413,10 +3385,10 @@
           const list = appData.events.filter(e => {
             if (!targetYears.includes(e.year)) return false;
             if (!catObj) return true;
-            const ch = e.channel || classifyEventChannel(e.title, e.type);
-            return ch === catObj.key;
+            const tp = String(e.type || '').trim() || 'その他';
+            return tp === catObj.key;
           });
-          showEventDetailModal(`🎪 ${targetLabel} イベント${titleSuffix} 一覧`, list);
+          showEventDetailModal(`🎪 ${targetLabel} イベント種別${titleSuffix} 一覧`, list);
         } else if (styleShiftMode === 'fullType') {
           const list = appData.fullVideos.filter(v =>
             targetYears.includes(v.year) && (!catObj || (v.type || 'Solo').trim() === catObj.key)
@@ -3425,14 +3397,13 @@
         }
       };
 
-      // 左側：選択2か年の割合比較（横向き並列棒グラフ）
       createChart('styleComparePair', 'chartStyleComparePair', {
         type: 'bar',
         data: {
           labels: categories.map(c => c.label),
           datasets: [
-            { label: `${yA}年`, data: statsA.pcts, backgroundColor: '#9333ea', borderRadius: 4, maxBarThickness: 16 },
-            { label: labelB, data: statsB.pcts, backgroundColor: '#0ea5e9', borderRadius: 4, maxBarThickness: 16 }
+            { label: `${yA}年`, data: valsA, backgroundColor: '#9333ea', borderRadius: 4, maxBarThickness: 14 },
+            { label: labelB, data: valsB, backgroundColor: '#0ea5e9', borderRadius: 4, maxBarThickness: 14 }
           ]
         },
         options: {
@@ -3452,36 +3423,33 @@
               callbacks: {
                 label: ctx => {
                   const idx = ctx.dataIndex;
-                  const pct = Number(ctx.parsed.x) || 0;
+                  const val = Number(ctx.parsed.x) || 0;
                   if (ctx.datasetIndex === 0) {
-                    const diff = Math.round((statsA.pcts[idx] - statsB.pcts[idx]) * 10) / 10;
-                    const diffStr = `${diff >= 0 ? '+' : ''}${diff}pt`;
-                    return `${ctx.dataset.label}: ${pct}%（${statsA.rawCounts[idx]}${unit} / 差 ${diffStr}）`;
+                    const diff = Math.round((valsA[idx] - valsB[idx]) * 10) / 10;
+                    const diffStr = `${diff >= 0 ? '+' : ''}${diff}${unit}`;
+                    return `${ctx.dataset.label}: ${val}${unit}（差 ${diffStr} / 割合 ${statsA.pcts[idx]}%）`;
                   }
-                  const cntText = poolB.length > 1 ? `年平均 ${statsB.avgCounts[idx]}${unit}` : `${statsB.rawCounts[idx]}${unit}`;
-                  return `${ctx.dataset.label}: ${pct}%（${cntText}）`;
+                  const prefix = poolB.length > 1 ? '年平均 ' : '';
+                  return `${ctx.dataset.label}: ${prefix}${val}${unit}（割合 ${statsB.pcts[idx]}%）`;
                 }
               }
             }
           },
           scales: {
-            x: { beginAtZero: true, max: 100, ticks: { font: { size: 10 }, callback: v => `${v}%` }, grid: { color: '#e2e8f0' } },
-            y: { grid: { display: false }, ticks: { font: { size: 10, weight: 'bold' }, color: '#334155' } }
+            x: { beginAtZero: true, ticks: { font: { size: 10 }, callback: v => `${v}${unit}` }, grid: { color: '#e2e8f0' } },
+            y: { grid: { display: false }, ticks: { font: { size: 10, weight: 'bold' }, color: '#334155', autoSkip: false } }
           }
         }
       });
 
-      // 右側：年別 構成比推移（2020年〜・100%積み上げ棒グラフ）
       const yearlyTotals = yearsAsc.map(y =>
         categories.reduce((sum, cat) => sum + ((countByYearCat[y] && countByYearCat[y][cat.key]) || 0), 0)
       );
-      const trendDatasets = categories.map(cat => ({
+      // 時間帯モードでは積み上げ棒グラフの「上＝朝 → 下＝深夜」になるよう下から順に並べる
+      const trendCategories = styleShiftMode === 'time' ? categories.slice().reverse() : categories;
+      const trendDatasets = trendCategories.map(cat => ({
         label: cat.label,
-        data: yearsAsc.map((y, yi) => {
-          const tot = yearlyTotals[yi];
-          const val = (countByYearCat[y] && countByYearCat[y][cat.key]) || 0;
-          return tot > 0 ? Math.round((val / tot) * 1000) / 10 : 0;
-        }),
+        data: yearsAsc.map(y => (countByYearCat[y] && countByYearCat[y][cat.key]) || 0),
         backgroundColor: cat.color,
         borderRadius: 2,
         maxBarThickness: 32
@@ -3495,41 +3463,44 @@
           onClick: (evt, elems) => {
             if (!elems.length) return;
             const y = yearsAsc[elems[0].index];
-            const catObj = categories[elems[0].datasetIndex];
+            const catObj = trendCategories[elems[0].datasetIndex];
             openStyleDetail([y], `${y}年`, catObj);
           },
           plugins: {
-            legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10 } },
+            legend: { position: 'bottom', reverse: styleShiftMode === 'time', labels: { font: { size: 10 }, boxWidth: 10 } },
             tooltip: {
               callbacks: {
                 label: ctx => {
-                  const y = yearsAsc[ctx.dataIndex];
-                  const cat = categories[ctx.datasetIndex];
-                  const raw = (countByYearCat[y] && countByYearCat[y][cat.key]) || 0;
-                  return `${cat.label}: ${ctx.parsed.y}%（${raw}${unit}）`;
+                  const yi = ctx.dataIndex;
+                  const tot = yearlyTotals[yi];
+                  const raw = Number(ctx.parsed.y) || 0;
+                  const pct = tot > 0 ? Math.round((raw / tot) * 1000) / 10 : 0;
+                  return `${ctx.dataset.label}: ${raw}${unit}（${pct}%）`;
                 }
               }
             }
           },
           scales: {
             x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 } } },
-            y: { stacked: true, beginAtZero: true, max: 100, ticks: { font: { size: 10 }, callback: v => `${v}%` }, grid: { color: '#e2e8f0' } }
+            y: { stacked: true, beginAtZero: true, ticks: { font: { size: 10 }, callback: v => `${v}${unit}` }, grid: { color: '#e2e8f0' } }
           }
         }
       });
     }
 
     // =========================================================================
-    // 15. ソート切替・詳細モーダル・編集モーダル
+    // 15. ソート切替・詳細モーダル・データ編集モーダル
     // =========================================================================
-    function toggleSortOrder(kind) {
-      sortOrders[kind] = sortOrders[kind] === 'desc' ? 'asc' : 'desc';
-      const btn = document.getElementById(`sortBtn-${kind}`);
-      if (btn) btn.textContent = sortOrders[kind] === 'desc' ? '日付：降順 ↓' : '日付：昇順 ↑';
-      if (kind === 'event') renderEventTable();
-      else if (kind === 'full' || kind === 'short') renderMusicTablesOnly();
-      else if (kind === 'stream') renderStreamLogsTable();
-      else if (kind === 'setlist') filterSetlistDisplay();
+    function toggleSortOrder(key) {
+      sortOrders[key] = sortOrders[key] === 'desc' ? 'asc' : 'desc';
+      const btn = document.getElementById(`sortBtn-${key}`);
+      if (btn) {
+        btn.textContent = sortOrders[key] === 'desc' ? '日付：降順 ↓' : '日付：昇順 ↑';
+      }
+      if (key === 'event') renderEventTable();
+      else if (key === 'full' || key === 'short') renderMusicTablesOnly();
+      else if (key === 'stream') renderStreamLogsTable();
+      else if (key === 'setlist') filterSetlistDisplay();
     }
 
     function openDetailModal(title, countText, bodyHtml) {
@@ -3538,6 +3509,7 @@
       document.getElementById('detailModalBody').innerHTML = bodyHtml;
       document.getElementById('detailModal').classList.remove('hidden');
     }
+
     function closeDetailModal() {
       document.getElementById('detailModal').classList.add('hidden');
     }
@@ -3545,84 +3517,150 @@
     function showStreamDetailModal(title, list) {
       const sorted = (list || []).slice().sort((a, b) => b.sortKey.localeCompare(a.sortKey));
       const totalSec = sorted.reduce((a, b) => a + getStreamSeconds(b), 0);
-      const html = sorted.length ? `<table class="w-full text-left"><thead class="bg-purple-50 text-purple-950"><tr><th class="py-1.5 px-2">日時</th><th class="py-1.5 px-2">タイトル</th><th class="py-1.5 px-2">タグ</th><th class="py-1.5 px-2 text-right">時間</th></tr></thead><tbody class="divide-y divide-slate-100">${sorted.map(s => `<tr><td class="py-1.5 px-2 font-mono text-slate-500 whitespace-nowrap">${escapeHtml(s.dateStr)}</td><td class="py-1.5 px-2 font-bold text-slate-800">${escapeHtml(s.title)}</td><td class="py-1.5 px-2">${(s.tags || []).map(t => renderColoredBadge(t, getStreamCatColor(t))).join(' ')}</td><td class="py-1.5 px-2 font-mono text-right whitespace-nowrap">${formatSecondsHMS(getStreamSeconds(s))}</td></tr>`).join('')}</tbody></table>` : '<div class="py-8 text-center text-slate-400">該当データがありません</div>';
-      openDetailModal(title, `全 ${sorted.length}件 / 合計 ${formatHours1Dec(totalSec)}h (${formatSecondsHMS(totalSec)})`, html);
+      const html = sorted.length
+        ? `<table class="w-full text-left">
+            <thead class="bg-purple-50 text-purple-950">
+              <tr><th class="py-1.5 px-2">日時</th><th class="py-1.5 px-2">タイトル</th><th class="py-1.5 px-2">タグ</th><th class="py-1.5 px-2 text-right">時間</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              ${sorted.map(s => `<tr class="hover:bg-purple-50/40">
+                <td class="py-1.5 px-2 font-mono text-slate-500 whitespace-nowrap">${escapeHtml(s.dateStr)}</td>
+                <td class="py-1.5 px-2 font-bold ${s.isError ? 'line-through text-slate-400' : 'text-slate-800'}">${escapeHtml(s.title)}</td>
+                <td class="py-1.5 px-2"><div class="flex flex-wrap gap-1">${(s.tags || []).map(t => renderColoredBadge(t, getStreamCatColor(t))).join('')}</div></td>
+                <td class="py-1.5 px-2 font-mono text-right whitespace-nowrap text-slate-600">${formatSecondsHMS(getStreamSeconds(s))}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>`
+        : '<div class="py-8 text-center text-slate-400">該当する配信データがありません</div>';
+      openDetailModal(title, `${sorted.length}件 ／ 合計 ${formatSecondsHMS(totalSec)} (${formatHours1Dec(totalSec)}h)`, html);
     }
 
     function showVideoDetailModal(title, list, mode) {
       const sorted = (list || []).slice().sort((a, b) => b.sortKey.localeCompare(a.sortKey));
-      const html = sorted.length ? `<table class="w-full text-left"><thead class="bg-purple-50 text-purple-950"><tr><th class="py-1.5 px-2">投稿日</th><th class="py-1.5 px-2">タイトル</th><th class="py-1.5 px-2">種別/分類</th><th class="py-1.5 px-2">作曲者</th></tr></thead><tbody class="divide-y divide-slate-100">${sorted.map(v => `<tr><td class="py-1.5 px-2 font-mono text-slate-500 whitespace-nowrap">${escapeHtml(v.dateStr)}</td><td class="py-1.5 px-2 font-bold text-slate-800">${escapeHtml(v.title)}</td><td class="py-1.5 px-2">${mode === 'full' ? renderColoredBadge(v.type || 'Solo', getFullTypeColor(v.type)) : renderColoredBadge(v.category, getShortCatColor(v.category))}</td><td class="py-1.5 px-2 text-slate-600">${escapeHtml(v.composer || '-')}</td></tr>`).join('')}</tbody></table>` : '<div class="py-8 text-center text-slate-400">該当データがありません</div>';
-      openDetailModal(title, `全 ${sorted.length}本`, html);
+      const html = sorted.length
+        ? `<table class="w-full text-left">
+            <thead class="bg-purple-50 text-purple-950">
+              <tr><th class="py-1.5 px-2">投稿日</th><th class="py-1.5 px-2">タイトル</th><th class="py-1.5 px-2">種別/分類</th><th class="py-1.5 px-2">作曲者</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              ${sorted.map(v => `<tr class="hover:bg-purple-50/40">
+                <td class="py-1.5 px-2 font-mono text-slate-500 whitespace-nowrap">${escapeHtml(v.dateStr)}</td>
+                <td class="py-1.5 px-2 font-bold text-slate-800">${escapeHtml(v.title)}</td>
+                <td class="py-1.5 px-2">${mode === 'full' ? renderColoredBadge(v.type || 'Solo', getFullTypeColor(v.type)) : renderColoredBadge(v.category || 'Shortのみ', getShortCatColor(v.category))}</td>
+                <td class="py-1.5 px-2 text-slate-600">${escapeHtml(v.composer || '-')}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>`
+        : '<div class="py-8 text-center text-slate-400">該当する動画データがありません</div>';
+      openDetailModal(title, `${sorted.length}本`, html);
     }
 
     function showEventDetailModal(title, list) {
       const sorted = (list || []).slice().sort((a, b) => b.sortKey.localeCompare(a.sortKey));
-      const html = sorted.length ? `<table class="w-full text-left"><thead class="bg-purple-50 text-purple-950"><tr><th class="py-1.5 px-2">日付</th><th class="py-1.5 px-2">タイトル</th><th class="py-1.5 px-2">区分</th><th class="py-1.5 px-2">種別</th></tr></thead><tbody class="divide-y divide-slate-100">${sorted.map(e => {
-        const ch = e.channel || classifyEventChannel(e.title, e.type);
-        return `<tr><td class="py-1.5 px-2 font-mono text-slate-500 whitespace-nowrap">${escapeHtml(e.dateStr)}</td><td class="py-1.5 px-2 font-bold text-slate-800">${escapeHtml(e.title)}</td><td class="py-1.5 px-2">${renderColoredBadge(ch, ch === 'リアル' ? '#ec4899' : '#0ea5e9')}</td><td class="py-1.5 px-2">${renderColoredBadge(e.type || 'その他', getEventTypeColor(e.type))}</td></tr>`;
-      }).join('')}</tbody></table>` : '<div class="py-8 text-center text-slate-400">該当データがありません</div>';
-      openDetailModal(title, `全 ${sorted.length}回`, html);
+      const html = sorted.length
+        ? `<table class="w-full text-left">
+            <thead class="bg-purple-50 text-purple-950">
+              <tr><th class="py-1.5 px-2">日付</th><th class="py-1.5 px-2">タイトル</th><th class="py-1.5 px-2">区分</th><th class="py-1.5 px-2">種別</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              ${sorted.map(e => {
+                const ch = e.channel || classifyEventChannel(e.title, e.type);
+                const chColor = ch === 'リアル' ? '#ec4899' : '#0ea5e9';
+                return `<tr class="hover:bg-purple-50/40">
+                  <td class="py-1.5 px-2 font-mono text-slate-500 whitespace-nowrap">${escapeHtml(e.dateStr)}</td>
+                  <td class="py-1.5 px-2 font-bold text-slate-800">${escapeHtml(e.title)}</td>
+                  <td class="py-1.5 px-2">${renderColoredBadge(ch, chColor)}</td>
+                  <td class="py-1.5 px-2">${renderColoredBadge(e.type || 'その他', getEventTypeColor(e.type))}</td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>`
+        : '<div class="py-8 text-center text-slate-400">該当するイベントデータがありません</div>';
+      openDetailModal(title, `${sorted.length}件`, html);
     }
 
     function showSetlistDetailModal(title, list) {
       const sorted = (list || []).slice().sort((a, b) => b.sortKey.localeCompare(a.sortKey));
-      const html = sorted.length ? `<table class="w-full text-left"><thead class="bg-purple-50 text-purple-950"><tr><th class="py-1.5 px-2">日付</th><th class="py-1.5 px-2">曲名</th><th class="py-1.5 px-2">種別</th><th class="py-1.5 px-2">配信・LIVEタイトル</th></tr></thead><tbody class="divide-y divide-slate-100">${sorted.map(r => `<tr><td class="py-1.5 px-2 font-mono text-slate-500 whitespace-nowrap">${escapeHtml(r.dateStr)}</td><td class="py-1.5 px-2 font-bold text-slate-800">${escapeHtml(r.title)}</td><td class="py-1.5 px-2">${renderColoredBadge(normalizeSetlistType(r.type), getSetlistTypeColor(r.type))}</td><td class="py-1.5 px-2 text-slate-600">${r.url ? `<a href="${escapeHtml(r.url)}" target="_blank" rel="noopener" class="text-purple-700 hover:underline">${escapeHtml(r.streamTitle)} ↗</a>` : escapeHtml(r.streamTitle)}</td></tr>`).join('')}</tbody></table>` : '<div class="py-8 text-center text-slate-400">該当データがありません</div>';
-      openDetailModal(title, `全 ${sorted.length}曲`, html);
+      const html = sorted.length
+        ? `<table class="w-full text-left">
+            <thead class="bg-purple-50 text-purple-950">
+              <tr><th class="py-1.5 px-2">日付</th><th class="py-1.5 px-2">曲名</th><th class="py-1.5 px-2">種別</th><th class="py-1.5 px-2">配信 / LIVE</th></tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              ${sorted.map(r => `<tr class="hover:bg-purple-50/40">
+                <td class="py-1.5 px-2 font-mono text-slate-500 whitespace-nowrap">${escapeHtml(r.dateStr)}</td>
+                <td class="py-1.5 px-2 font-bold text-slate-800">${escapeHtml(r.title)}</td>
+                <td class="py-1.5 px-2">${renderColoredBadge(normalizeSetlistType(r.type), getSetlistTypeColor(r.type))}</td>
+                <td class="py-1.5 px-2 text-slate-600">${r.url ? `<a href="${escapeHtml(r.url)}" target="_blank" rel="noopener" class="text-purple-700 hover:underline">${escapeHtml(r.streamTitle)} ↗</a>` : escapeHtml(r.streamTitle)}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>`
+        : '<div class="py-8 text-center text-slate-400">該当するセットリストデータがありません</div>';
+      openDetailModal(title, `${sorted.length}曲`, html);
     }
 
     function openEditModal(kind, uid) {
-      const colMap = { stream: appData.streams, full: appData.fullVideos, short: appData.shortVideos, setlist: appData.setlist, event: appData.events };
-      const item = (colMap[kind] || []).find(x => x._uid === uid);
+      let item = null;
+      if (kind === 'stream') item = appData.streams.find(x => x._uid === uid);
+      else if (kind === 'full') item = appData.fullVideos.find(x => x._uid === uid);
+      else if (kind === 'short') item = appData.shortVideos.find(x => x._uid === uid);
+      else if (kind === 'event') item = appData.events.find(x => x._uid === uid);
+      else if (kind === 'setlist') item = appData.setlist.find(x => x._uid === uid);
       if (!item) return;
-      currentEditTarget = { kind, item };
 
-      const fTitle = document.getElementById('editFieldTitle');
-      const fTags = document.getElementById('editFieldTags');
-      const fTagLbl = document.getElementById('editFieldTagLabel');
-      const fExtraWrap = document.getElementById('editFieldExtraWrap');
-      const fExtraLbl = document.getElementById('editFieldExtraLabel');
-      const fExtra = document.getElementById('editFieldExtra');
-      const fFlagWrap = document.getElementById('editFieldFlagWrap');
-      const fFlag = document.getElementById('editFieldFlag');
-      const fFlagLbl = document.getElementById('editFieldFlagLabel');
+      currentEditTarget = { kind, uid };
+      const titleInput = document.getElementById('editFieldTitle');
+      const tagsInput = document.getElementById('editFieldTags');
+      const tagLabel = document.getElementById('editFieldTagLabel');
+      const extraWrap = document.getElementById('editFieldExtraWrap');
+      const extraLabel = document.getElementById('editFieldExtraLabel');
+      const extraInput = document.getElementById('editFieldExtra');
+      const flagWrap = document.getElementById('editFieldFlagWrap');
+      const flagInput = document.getElementById('editFieldFlag');
+      const flagLabel = document.getElementById('editFieldFlagLabel');
 
-      fExtraWrap.classList.add('hidden');
-      fFlagWrap.classList.add('hidden');
+      titleInput.value = item.title || '';
+      extraWrap.classList.add('hidden');
+      flagWrap.classList.add('hidden');
 
-      fTitle.value = item.title || '';
       if (kind === 'stream') {
-        fTagLbl.textContent = '種別タグ（カンマ区切り）';
-        fTags.value = (item.tags || []).join(', ');
-        fFlagWrap.classList.remove('hidden');
-        fFlagLbl.textContent = '配信回数カウントから除外する（Error枠）';
-        fFlag.checked = !!item.isError;
+        document.getElementById('editModalHeading').textContent = '✏️ 配信ログを編集';
+        tagLabel.textContent = '種別タグ（カンマ区切り）';
+        tagsInput.value = (item.tags || []).join(', ');
+        flagWrap.classList.remove('hidden');
+        flagLabel.textContent = '配信回数カウントから除外する（接続エラー等）';
+        flagInput.checked = !!item.isError;
       } else if (kind === 'full') {
-        fTagLbl.textContent = '種別（Solo / Original / Collab / Live action 等）';
-        fTags.value = item.type || 'Solo';
-        fExtraWrap.classList.remove('hidden');
-        fExtraLbl.textContent = '作曲者';
-        fExtra.value = item.composer || '';
+        document.getElementById('editModalHeading').textContent = '✏️ Full動画を編集';
+        tagLabel.textContent = '種別 (Solo / Original / Collab / Live action)';
+        tagsInput.value = item.type || 'Solo';
+        extraWrap.classList.remove('hidden');
+        extraLabel.textContent = '作曲者';
+        extraInput.value = item.composer || '';
       } else if (kind === 'short') {
-        fTagLbl.textContent = '分類（Full関連 / Shortのみ）';
-        fTags.value = item.category || 'Shortのみ';
-        fExtraWrap.classList.remove('hidden');
-        fExtraLbl.textContent = '作曲者';
-        fExtra.value = item.composer || '';
-        fFlagWrap.classList.remove('hidden');
-        fFlagLbl.textContent = '本数カウントから除外する（Xのみ投稿など）';
-        fFlag.checked = !!item.isExcluded;
-      } else if (kind === 'setlist') {
-        fTagLbl.textContent = '種別（歌枠 / カラオケ / LIVE (solo) / LIVE (Comp) 等）';
-        fTags.value = normalizeSetlistType(item.type);
-        fExtraWrap.classList.remove('hidden');
-        fExtraLbl.textContent = '配信・LIVEタイトル';
-        fExtra.value = item.streamTitle || '';
+        document.getElementById('editModalHeading').textContent = '✏️ Short動画を編集';
+        tagLabel.textContent = '分類 (Full関連 / Shortのみ)';
+        tagsInput.value = item.category || 'Shortのみ';
+        extraWrap.classList.remove('hidden');
+        extraLabel.textContent = '作曲者';
+        extraInput.value = item.composer || '';
+        flagWrap.classList.remove('hidden');
+        flagLabel.textContent = '本数カウントから除外する（Xのみ投稿等）';
+        flagInput.checked = !!item.isExcluded;
       } else if (kind === 'event') {
-        fTagLbl.textContent = 'イベント種別（ライブ / リリイベ / ファンミ / 特典会 等）';
-        fTags.value = item.type || '';
-        fExtraWrap.classList.remove('hidden');
-        fExtraLbl.textContent = '区分（リアル / オンライン）';
-        fExtra.value = item.channel || classifyEventChannel(item.title, item.type);
+        document.getElementById('editModalHeading').textContent = '✏️ イベントを編集';
+        tagLabel.textContent = '種別（ライブ / リリイベ / ファンミ / 特典会 等）';
+        tagsInput.value = item.type || '';
+        extraWrap.classList.remove('hidden');
+        extraLabel.textContent = '区分（リアル / オンライン）';
+        extraInput.value = item.channel || classifyEventChannel(item.title, item.type);
+      } else if (kind === 'setlist') {
+        document.getElementById('editModalHeading').textContent = '✏️ セトリ曲を編集';
+        tagLabel.textContent = '種別（歌枠 / LIVE (solo) / LIVE (Comp) / カラオケ 等）';
+        tagsInput.value = normalizeSetlistType(item.type);
+        extraWrap.classList.remove('hidden');
+        extraLabel.textContent = '配信・LIVEタイトル';
+        extraInput.value = item.streamTitle || '';
       }
 
       document.getElementById('editModal').classList.remove('hidden');
@@ -3635,56 +3673,66 @@
 
     function saveEditModal() {
       if (!currentEditTarget) return;
-      const { kind, item } = currentEditTarget;
-      const title = document.getElementById('editFieldTitle').value.trim();
-      const tagsStr = document.getElementById('editFieldTags').value.trim();
-      const extraStr = document.getElementById('editFieldExtra').value.trim();
-      const flag = document.getElementById('editFieldFlag').checked;
+      const { kind, uid } = currentEditTarget;
+      const titleVal = document.getElementById('editFieldTitle').value.trim();
+      const tagsVal = document.getElementById('editFieldTags').value.trim();
+      const extraVal = document.getElementById('editFieldExtra').value.trim();
+      const flagVal = document.getElementById('editFieldFlag').checked;
 
-      if (title) item.title = title;
       if (kind === 'stream') {
-        item.tags = splitMultiValues(tagsStr);
-        if (!item.tags.length) item.tags = ['雑談'];
-        item.isError = flag;
+        const item = appData.streams.find(x => x._uid === uid);
+        if (item) {
+          item.title = titleVal || item.title;
+          const parsedTags = splitMultiValues(tagsVal);
+          item.tags = parsedTags.length ? parsedTags : ['雑談'];
+          item.isError = flagVal;
+        }
       } else if (kind === 'full') {
-        item.type = tagsStr || 'Solo';
-        item.composer = extraStr;
+        const item = appData.fullVideos.find(x => x._uid === uid);
+        if (item) {
+          item.title = titleVal || item.title;
+          item.type = tagsVal || 'Solo';
+          item.composer = extraVal;
+        }
       } else if (kind === 'short') {
-        item.category = tagsStr || 'Shortのみ';
-        item.composer = extraStr;
-        item.isExcluded = flag;
-      } else if (kind === 'setlist') {
-        item.type = normalizeSetlistType(tagsStr || '歌枠');
-        if (extraStr) item.streamTitle = extraStr;
+        const item = appData.shortVideos.find(x => x._uid === uid);
+        if (item) {
+          item.title = titleVal || item.title;
+          item.category = tagsVal || 'Shortのみ';
+          item.composer = extraVal;
+          item.isExcluded = flagVal;
+        }
       } else if (kind === 'event') {
-        item.type = tagsStr || 'その他';
-        item.channel = extraStr === 'オンライン' ? 'オンライン' : 'リアル';
+        const item = appData.events.find(x => x._uid === uid);
+        if (item) {
+          item.title = titleVal || item.title;
+          item.type = tagsVal || 'その他';
+          item.channel = extraVal === 'オンライン' ? 'オンライン' : 'リアル';
+        }
+      } else if (kind === 'setlist') {
+        const item = appData.setlist.find(x => x._uid === uid);
+        if (item) {
+          item.title = titleVal || item.title;
+          item.type = normalizeSetlistType(tagsVal || '歌枠');
+          item.streamTitle = extraVal || item.streamTitle;
+        }
       }
 
-      appData.isSample = false;
       saveStateToLocal();
       closeEditModal();
       renderAll();
-      showToast('💾 編集内容を保存しました');
+      showToast('💾 変更を保存して反映しました');
     }
 
     // =========================================================================
     // 16. 初期化
     // =========================================================================
     window.addEventListener('DOMContentLoaded', () => {
-      try {
-        setupDragAndDrop();
-        const restored = loadStateFromLocal();
-        refreshYearSelectors();
-        updateLoadedStatusUI();
-        renderAll();
-        if (restored) {
-          const st = document.getElementById('autoSaveStatus');
-          if (st) st.textContent = '前回の保存データを自動復元しました';
-        }
-      } catch (e) {
-        console.error('Initialization error:', e);
-      }
+      loadStateFromLocal();
+      setupDragAndDrop();
+      refreshYearSelectors();
+      updateLoadedStatusUI();
+      renderAll();
     });
   </script>
 </body>
