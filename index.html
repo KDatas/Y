@@ -1,25 +1,26 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<script>
+    <script>
+  // URLに ?exclude=1 が付いていたら、このブラウザを除外対象として記憶する
   if (location.search.includes('exclude=1')) {
     localStorage.setItem('ga_exclude', 'true');
   }
+  // 除外対象として記憶されているブラウザなら、GA4の計測を完全に停止する
   if (localStorage.getItem('ga_exclude') === 'true') {
     window['ga-disable-G-TZCENBQRCC'] = true;
   }
 </script>
 <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-TZCENBQRCC"></script>
+  <script async src="https://www.googletagmanager.com/gtm.js?id=G-TZCENBQRCC"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', 'G-TZCENBQRCC');
-</script>
+</script>  
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title> 活動レポート ダッシュボード</title>
+  <title>雪見 活動レポート ダッシュボード</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js -->
@@ -614,35 +615,35 @@
          =================================================================== -->
     <section id="tab-calendar" class="hidden space-y-3">
       <!-- コントロールバー -->
-      <div class="bg-white rounded-2xl px-3.5 py-2.5 card-shadow border border-purple-100/80">
-        <div class="flex flex-wrap items-center justify-between gap-2">
+      <div class="bg-white rounded-2xl px-3.5 py-2.5 card-shadow border border-purple-100/80 overflow-hidden">
+        <div class="flex flex-wrap items-center justify-between gap-2 min-w-0">
           <!-- 左〜中央：タイトル・年度切替・表示モード切替・統合月選択ピルバー -->
-          <div class="flex flex-wrap items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2 min-w-0 max-w-full">
             <h2 class="text-sm font-black text-slate-800 mr-0.5 whitespace-nowrap">📅 活動カレンダー</h2>
 
             <!-- 年切り替え -->
-            <div class="inline-flex items-center gap-0.5 bg-purple-50 px-1 py-0.5 rounded-xl border border-purple-100">
+            <div class="inline-flex items-center gap-0.5 bg-purple-50 px-1 py-0.5 rounded-xl border border-purple-100 shrink-0">
               <button type="button" onclick="autoCalChangeYear(-1)" class="w-6 h-6 rounded-lg hover:bg-purple-100 text-purple-800 font-bold text-xs flex items-center justify-center transition cursor-pointer" title="前年へ">◀</button>
               <span id="autoCalYearLabel" class="text-xs sm:text-sm font-black text-purple-900 px-1.5 min-w-[56px] text-center whitespace-nowrap">2026年</span>
               <button type="button" onclick="autoCalChangeYear(1)" class="w-6 h-6 rounded-lg hover:bg-purple-100 text-purple-800 font-bold text-xs flex items-center justify-center transition cursor-pointer" title="翌年へ">▶</button>
             </div>
 
             <!-- 月間 / 年間 切り替え -->
-            <div class="inline-flex bg-purple-50 p-0.5 rounded-xl border border-purple-100">
+            <div class="inline-flex bg-purple-50 p-0.5 rounded-xl border border-purple-100 shrink-0">
               <button type="button" id="autoCalViewBtn-month" onclick="setAutoCalViewMode('month')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-700 text-white shadow-sm transition cursor-pointer whitespace-nowrap">月間表示</button>
               <button type="button" id="autoCalViewBtn-year" onclick="setAutoCalViewMode('year')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-purple-800 hover:bg-purple-100 transition cursor-pointer whitespace-nowrap">年間表示</button>
             </div>
 
             <!-- 統合月選択ピルバー（月間表示時のみ表示：◀ 1月〜12月 ▶） -->
-            <div id="calMonthNavWrap" class="hidden inline-flex items-center gap-0.5 bg-purple-50 px-1 py-0.5 rounded-xl border border-purple-100 max-w-full overflow-x-auto custom-scroll">
+            <div id="calMonthNavWrap" class="hidden flex items-center gap-0.5 bg-purple-50 px-1 py-0.5 rounded-xl border border-purple-100 max-w-full min-w-0">
               <button type="button" onclick="autoCalChangeMonth(-1)" class="w-5 h-5 rounded-md hover:bg-purple-100 text-purple-800 font-bold text-[10px] flex items-center justify-center shrink-0 transition cursor-pointer" title="前月へ">◀</button>
-              <div id="autoCalMonthPills" class="inline-flex items-center gap-0.5"></div>
+              <div id="autoCalMonthPills" class="flex items-center gap-0.5 overflow-x-auto custom-scroll min-w-0"></div>
               <button type="button" onclick="autoCalChangeMonth(1)" class="w-5 h-5 rounded-md hover:bg-purple-100 text-purple-800 font-bold text-[10px] flex items-center justify-center shrink-0 transition cursor-pointer" title="翌月へ">▶</button>
             </div>
           </div>
 
           <!-- 右側：件数バッジ＆フィルター開閉 -->
-          <div class="flex flex-wrap items-center gap-1.5">
+          <div class="flex flex-wrap items-center gap-1.5 min-w-0">
             <span id="autoCalCountBadge" class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-100 whitespace-nowrap">0件</span>
             <button type="button" id="autoCalFilterToggleBtn" onclick="toggleAutoCalFilterPanel()" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border border-purple-200 bg-white hover:bg-purple-50 text-xs font-bold text-purple-800 transition cursor-pointer whitespace-nowrap">
               <span>🔍</span><span id="autoCalFilterBtnText">フィルター</span><span id="autoCalFilterChevron" class="text-[9px] opacity-70">▼</span>
