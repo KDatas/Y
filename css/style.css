@@ -1,0 +1,321 @@
+body {
+  font-family: 'Inter', 'Noto Sans JP', sans-serif;
+  background-color: #f5f4f8;
+  color: #2b273c;
+}
+.hero-gradient {
+  background: linear-gradient(135deg, #5b4391 0%, #7357b0 52%, #8e6cc9 100%);
+}
+.card-shadow {
+  box-shadow: 0 4px 16px -4px rgba(75, 57, 107, 0.07), 0 1px 3px rgba(15, 23, 42, 0.03);
+}
+.custom-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scroll::-webkit-scrollbar-track {
+  background: #f1f0f7;
+  border-radius: 9999px;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: #c4b5fd;
+  border-radius: 9999px;
+}
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+  background: #9333ea;
+}
+.tab-btn-active {
+  background: linear-gradient(135deg, #7c5cc4 0%, #9472db 100%);
+  color: #ffffff;
+  box-shadow: 0 3px 10px -2px rgba(124, 92, 196, 0.28);
+}
+.tab-btn-idle {
+  color: #475569;
+  background: transparent;
+}
+.tab-btn-idle:hover {
+  background: #f3e8ff;
+  color: #6b21a8;
+}
+.drop-active {
+  border-color: #9333ea !important;
+  background-color: #faf5ff !important;
+}
+.heatmap-zero-hatch {
+  background-color: #f1f5f9;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(148, 163, 184, 0.30),
+    rgba(148, 163, 184, 0.30) 3px,
+    transparent 3px,
+    transparent 7px
+  );
+  border: 1px solid #cbd5e1;
+  color: #94a3b8;
+}
+
+
+/* ライトモード時のクリア＆目に優しいトーン調整（html:not(.dark)） */
+html:not(.dark) .bg-purple-700 { background-color: #7c5cc4 !important; }
+html:not(.dark) .bg-purple-600 { background-color: #8b6cd1 !important; }
+html:not(.dark) .hover\:bg-purple-800:hover { background-color: #6848b0 !important; }
+html:not(.dark) .text-purple-700 { color: #6b4cb3 !important; }
+html:not(.dark) .text-purple-600 { color: #7c5cc4 !important; }
+html:not(.dark) .text-fuchsia-600 { color: #b352a6 !important; }
+html:not(.dark) .text-pink-600 { color: #cc5888 !important; }
+html:not(.dark) .text-rose-600 { color: #d1566a !important; }
+
+/* =========================================================================
+   ダークモード用スタイル（html.dark 付与時に適用）
+   ========================================================================= */
+html.dark body {
+  background-color: #0e0c18;
+  color: #e2e8f0;
+}
+html.dark .hero-gradient {
+  background: linear-gradient(135deg, #1b0933 0%, #3b1068 55%, #581475 100%);
+}
+html.dark .card-shadow {
+  box-shadow: 0 6px 22px -4px rgba(0, 0, 0, 0.55), 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+html.dark .custom-scroll::-webkit-scrollbar-track {
+  background: #181428;
+}
+html.dark .custom-scroll::-webkit-scrollbar-thumb {
+  background: #4c3a75;
+}
+html.dark .custom-scroll::-webkit-scrollbar-thumb:hover {
+  background: #7e22ce;
+}
+html.dark .tab-btn-idle {
+  color: #cbd5e1;
+}
+html.dark .tab-btn-idle:hover {
+  background: #2a2145;
+  color: #e9d5ff;
+}
+html.dark .drop-active {
+  border-color: #c084fc !important;
+  background-color: #261c42 !important;
+}
+html.dark .heatmap-zero-hatch {
+  background-color: #161326;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(148, 163, 184, 0.14),
+    rgba(148, 163, 184, 0.14) 3px,
+    transparent 3px,
+    transparent 7px
+  );
+  border: 1px solid #2d2648;
+  color: #64748b;
+}
+
+/* 背景・枠線・テキストのダークモード上書き */
+html.dark .bg-white { background-color: #181428 !important; }
+html.dark .bg-slate-50,
+html.dark .bg-slate-50\/70,
+html.dark .bg-slate-50\/80,
+html.dark .bg-slate-50\/90 { background-color: #211c36 !important; }
+html.dark .bg-purple-50,
+html.dark .bg-purple-50\/60,
+html.dark .bg-purple-50\/70,
+html.dark .bg-purple-50\/80 { background-color: #261c42 !important; }
+html.dark .bg-fuchsia-50 { background-color: #32183d !important; }
+html.dark .bg-indigo-50 { background-color: #1f2247 !important; }
+html.dark .bg-pink-50 { background-color: #381832 !important; }
+html.dark .bg-sky-50 { background-color: #13283d !important; }
+html.dark .bg-amber-50 { background-color: #332512 !important; }
+html.dark .bg-emerald-50\/70 { background-color: #122c26 !important; }
+html.dark .bg-emerald-100 { background-color: #164438 !important; }
+html.dark .bg-purple-100\/70 { background-color: #2f234f !important; }
+
+html.dark .border-purple-100,
+html.dark .border-purple-100\/80,
+html.dark .border-purple-200,
+html.dark .border-purple-200\/50 { border-color: #2f264f !important; }
+html.dark .border-slate-100,
+html.dark .border-slate-200 { border-color: #2c2645 !important; }
+html.dark .border-pink-100 { border-color: #4a2042 !important; }
+html.dark .border-sky-200 { border-color: #1e4266 !important; }
+html.dark .border-emerald-200\/80 { border-color: #1f4f42 !important; }
+html.dark .border-rose-100 { border-color: #4d2030 !important; }
+html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) { border-color: #2a2342 !important; }
+
+html.dark .text-slate-900 { color: #f8fafc !important; }
+html.dark .text-slate-800 { color: #f1f5f9 !important; }
+html.dark .text-slate-700 { color: #e2e8f0 !important; }
+html.dark .text-slate-600 { color: #cbd5e1 !important; }
+html.dark .text-slate-500 { color: #94a3b8 !important; }
+html.dark .text-slate-400 { color: #7c89a3 !important; }
+html.dark .text-purple-950,
+html.dark .text-purple-900,
+html.dark .text-purple-800,
+html.dark .text-purple-700 { color: #d8b4fe !important; }
+html.dark .text-purple-600 { color: #c084fc !important; }
+html.dark .text-fuchsia-950,
+html.dark .text-fuchsia-700,
+html.dark .text-fuchsia-600 { color: #f0abfc !important; }
+html.dark .text-indigo-700,
+html.dark .text-indigo-600 { color: #a5b4fc !important; }
+html.dark .text-pink-700,
+html.dark .text-pink-600 { color: #f9a8d4 !important; }
+html.dark .text-rose-600 { color: #fda4af !important; }
+html.dark .text-sky-900,
+html.dark .text-sky-600 { color: #7dd3fc !important; }
+html.dark .text-amber-700 { color: #fcd34d !important; }
+html.dark .text-emerald-800,
+html.dark .text-emerald-700,
+html.dark .text-emerald-600 { color: #6ee7b7 !important; }
+
+html.dark .hover\:bg-purple-50:hover,
+html.dark .hover\:bg-purple-50\/40:hover,
+html.dark .hover\:bg-purple-50\/70:hover,
+html.dark .hover\:bg-purple-100:hover { background-color: #2f234f !important; }
+html.dark .hover\:bg-fuchsia-50\/40:hover,
+html.dark .hover\:bg-fuchsia-100:hover { background-color: #3d1d4a !important; }
+html.dark .hover\:bg-slate-50:hover,
+html.dark .hover\:bg-white:hover { background-color: #2a2442 !important; }
+
+html.dark input[type="text"],
+html.dark select {
+  background-color: #211c36;
+  color: #f1f5f9;
+  border-color: #3b3061;
+}
+html.dark header select {
+  background-color: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+html.dark select option {
+  background-color: #181428;
+  color: #f1f5f9;
+}
+
+/* =========================================================================
+   自動連携カレンダータブ専用スタイル（ライト／ダーク対応）
+   ========================================================================= */
+.cal-table {
+  border-spacing: 0;
+  border-collapse: separate;
+  table-layout: fixed;
+  width: 1910px;
+}
+.cal-table th.cal-sticky-month {
+  position: sticky; top: 0; z-index: 20;
+  background-color: #faf5ff; color: #4c1d95;
+  border-bottom: 2px solid #e9d5ff;
+  width: 156px;
+}
+.cal-table th.cal-sticky-day {
+  position: sticky; left: 0; z-index: 20;
+  background-color: #ffffff; color: #64748b;
+  border-right: 2px solid #e9d5ff;
+  width: 38px;
+}
+.cal-table th.cal-sticky-corner {
+  position: sticky; top: 0; left: 0; z-index: 30;
+  background-color: #f3e8ff; color: #581c87;
+  border-right: 2px solid #e9d5ff;
+  border-bottom: 2px solid #e9d5ff;
+  width: 38px;
+}
+.cal-table td {
+  vertical-align: top;
+  width: 156px;
+  overflow: hidden;
+  transition: background-color 0.12s ease;
+}
+.cal-table td.cal-cell-valid:hover,
+.cal-month-cell:hover {
+  background-color: rgba(147, 51, 234, 0.05);
+}
+.cal-table tr.cal-milestone-row td,
+.cal-table tr.cal-milestone-row th {
+  border-bottom: 1px solid #d8b4fe;
+}
+.cal-hatch {
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(148, 163, 184, 0.16),
+    rgba(148, 163, 184, 0.16) 4px,
+    transparent 4px,
+    transparent 9px
+  );
+  background-color: #f8fafc;
+  pointer-events: none;
+}
+.cal-sun { background-color: #fff1f2 !important; }
+.cal-sat { background-color: #eff6ff !important; }
+.cal-item-chip {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.3rem;
+  border-radius: 0.375rem;
+  padding: 0.2rem 0.4rem;
+  font-size: 11px;
+  line-height: 1.3;
+  cursor: pointer;
+  text-align: left;
+  border: 1px solid transparent;
+  max-width: 100%;
+  overflow: hidden;
+  transition: transform 0.1s ease, filter 0.12s ease;
+  word-break: break-word;
+}
+.cal-item-chip:hover {
+  filter: brightness(0.95);
+  transform: translateY(-0.5px);
+}
+.cal-title-ellipsis {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-all;
+}
+
+html.dark .cal-table th.cal-sticky-month {
+  background-color: #261c42; color: #e9d5ff;
+  border-bottom-color: #3b2d63;
+}
+html.dark .cal-table th.cal-sticky-day {
+  background-color: #181428; color: #94a3b8;
+  border-right-color: #3b2d63;
+}
+html.dark .cal-table th.cal-sticky-corner {
+  background-color: #2f234f; color: #f3e8ff;
+  border-right-color: #3b2d63;
+  border-bottom-color: #3b2d63;
+}
+html.dark .cal-table td.cal-cell-valid:hover,
+html.dark .cal-month-cell:hover {
+  background-color: rgba(168, 85, 247, 0.12);
+}
+html.dark .cal-table tr.cal-milestone-row td,
+html.dark .cal-table tr.cal-milestone-row th {
+  border-bottom-color: #3b2d63;
+}
+html.dark .cal-hatch {
+  background-color: #141122;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(148, 163, 184, 0.12),
+    rgba(148, 163, 184, 0.12) 4px,
+    transparent 4px,
+    transparent 9px
+  );
+}
+html.dark .cal-sun {
+  background-color: rgba(244, 63, 94, 0.22) !important;
+  box-shadow: inset 3px 0 0 rgba(251, 113, 133, 0.7);
+}
+html.dark .cal-sat {
+  background-color: rgba(56, 189, 248, 0.20) !important;
+  box-shadow: inset 3px 0 0 rgba(96, 165, 250, 0.7);
+}
+html.dark .cal-hol-label {
+  color: #fda4af !important;
+}

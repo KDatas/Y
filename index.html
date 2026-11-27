@@ -2,9 +2,11 @@
 <html lang="ja">
 <head>
     <script>
+  // URLに ?exclude=1 が付いていたら、このブラウザを除外対象として記憶する
   if (location.search.includes('exclude=1')) {
     localStorage.setItem('ga_exclude', 'true');
   }
+  // 除外対象として記憶されているブラウザなら、GA4の計測を完全に停止する
   if (localStorage.getItem('ga_exclude') === 'true') {
     window['ga-disable-G-TZCENBQRCC'] = true;
   }
@@ -18,7 +20,7 @@
 </script>  
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>活動レポート ダッシュボード</title>
+  <title>雪見 活動レポート ダッシュボード</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js -->
@@ -138,7 +140,7 @@
           <span>🎵</span><span>動画・ショート</span>
         </button>
         <button id="tabBtn-streaming" onclick="switchTab('streaming')" class="tab-btn-idle flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">
-          <span>🎙️</span><span>雑談・配信</span>
+          <span>🎙️</span><span>配信</span>
         </button>
         <button id="tabBtn-singing" onclick="switchTab('singing')" class="tab-btn-idle flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">
           <span>📝</span><span>歌枠＆セトリ</span>
@@ -159,7 +161,7 @@
           <button type="button" onclick="toggleGuidePopover(event)" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-bold text-slate-400 hover:text-purple-700 hover:bg-purple-50 transition cursor-pointer" aria-label="操作ヒント">
             <span>❓</span><span class="hidden sm:inline">操作ヒント</span>
           </button>
-          <div id="guidePopover" class="hidden group-hover:block absolute right-0 mt-1.5 w-72 bg-white border border-purple-200 rounded-2xl p-3 shadow-xl z-40 text-[11px] text-slate-600 space-y-1.5 leading-relaxed">
+          <div id="guidePopover" class="hidden group-hover:block fixed inset-x-3 sm:inset-x-auto sm:absolute sm:right-0 mt-1.5 sm:w-72 bg-white border border-purple-200 rounded-2xl p-3 shadow-xl z-40 text-[11px] text-slate-600 space-y-1.5 leading-relaxed">
             <div class="font-black text-slate-800 text-xs pb-1 border-b border-slate-100">💡 グラフ・一覧の操作ヒント</div>
             <div>・<span class="font-bold text-purple-700">棒・円・ヒートマップをクリック</span>：該当データの詳細一覧を表示</div>
             <div>・<span class="font-bold text-purple-700">凡例をクリック</span>：各年・種別の表示／非表示を切替</div>
@@ -256,6 +258,8 @@
           <h3 class="text-xs sm:text-sm font-black text-slate-800">📋 イベント一覧</h3>
           <button id="sortBtn-event" onclick="toggleSortOrder('event')" class="px-2.5 py-1 rounded-xl border border-purple-200 text-[11px] font-bold text-purple-700 hover:bg-purple-50 transition cursor-pointer">日付：降順 ↓</button>
         </div>
+        <!-- 月別切り替えボタン -->
+        <div id="eventLogMonthPills" class="flex flex-wrap items-center gap-1 mb-2 pb-2 border-b border-slate-100"></div>
         <div class="overflow-x-auto max-h-64 custom-scroll">
           <table class="w-full text-xs text-left">
             <thead class="bg-purple-50 text-purple-950 sticky top-0 z-10">
@@ -389,31 +393,79 @@
     </section>
 
     <!-- ===================================================================
-         TAB 4: 🎙️ 雑談・配信
+         TAB 4: 🎙️ 配信
          =================================================================== -->
     <section id="tab-streaming" class="hidden space-y-3">
+      <!-- 表示モード切り替えバー -->
+      <div class="bg-white rounded-2xl px-3.5 py-2.5 card-shadow border border-purple-100/80 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-1.5 text-xs sm:text-sm font-black text-slate-800">
+          <span>🎙️</span>
+          <span>配信分析 表示切替</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="inline-flex flex-wrap items-center gap-1 bg-purple-50/80 p-1 rounded-xl border border-purple-100 text-[11px] font-bold">
+            <button type="button" id="stModeBtn-total" onclick="setStreamViewMode('total')" class="px-2.5 py-1 rounded-lg bg-purple-700 text-white shadow-sm transition cursor-pointer">📊 総数</button>
+            <button type="button" id="stModeBtn-time" onclick="setStreamViewMode('time')" class="px-2.5 py-1 rounded-lg text-purple-800 hover:bg-purple-100 transition cursor-pointer">🕐 時間帯</button>
+            <button type="button" id="stModeBtn-category" onclick="setStreamViewMode('category')" class="px-2.5 py-1 rounded-lg text-purple-800 hover:bg-purple-100 transition cursor-pointer">🏷️ 配信種別</button>
+            <button type="button" id="stModeBtn-duration" onclick="setStreamViewMode('duration')" class="px-2.5 py-1 rounded-lg text-purple-800 hover:bg-purple-100 transition cursor-pointer">⏱️ 配信あたりの時間</button>
+          </div>
+          <!-- 棒グラフ凡例の一括非表示／すべて表示トグルボタン（総数以外のモードで表示） -->
+          <div id="streamLegendBulkWrap" class="hidden inline-flex items-center text-[11px] font-bold">
+            <button type="button" id="btnStreamLegendBulk" onclick="toggleAllStreamBarDatasets()" class="px-2.5 py-1 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 transition cursor-pointer" title="棒グラフの項目を一括で非表示／再表示します">🙈 一括非表示</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1段目：左＝月別 配信回数 ／ 右＝月別 配信時間 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+          <div class="flex flex-wrap items-center justify-between gap-1 mb-2">
+            <h3 id="streamCountChartTitle" class="text-xs sm:text-sm font-black text-slate-800">📊 月別 配信回数（総数）</h3>
+            <span id="streamMonthlySummary" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700">合計：0回</span>
+          </div>
+          <div class="h-52"><canvas id="chartStreamMonthly"></canvas></div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+          <div class="flex flex-wrap items-center justify-between gap-1 mb-2">
+            <h3 id="streamHoursChartTitle" class="text-xs sm:text-sm font-black text-slate-800">⏱️ 月別 配信時間 (h)（総数）</h3>
+            <span id="streamHoursSummary" class="text-[10px] font-bold font-mono px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">合計：0.0h</span>
+          </div>
+          <div class="h-52"><canvas id="chartStreamHoursMonthly"></canvas></div>
+        </div>
+      </div>
+
+      <!-- 2段目：左＝構成比 ／ 右＝曜日別ヒートマップ -->
       <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
         <div class="md:col-span-5 bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-          <h3 class="text-xs sm:text-sm font-black text-slate-800 mb-2">🏷️ 配信カテゴリ構成比</h3>
-          <div class="grid grid-cols-12 gap-2 items-center h-48">
-            <div class="col-span-6 h-44"><canvas id="chartStreamCat"></canvas></div>
-            <div id="legendStreamCat" class="col-span-6 h-44 overflow-y-auto custom-scroll space-y-0.5 pr-1 text-[11px]"></div>
+          <h3 id="streamCatTitle" class="text-xs sm:text-sm font-black text-slate-800 mb-2">🏷️ 配信カテゴリ構成比</h3>
+          <div class="grid grid-cols-12 gap-2 items-center h-52">
+            <div class="col-span-6 h-48"><canvas id="chartStreamCat"></canvas></div>
+            <div id="legendStreamCat" class="col-span-6 h-48 overflow-y-auto custom-scroll space-y-0.5 pr-1 text-[11px]"></div>
           </div>
         </div>
 
         <div class="md:col-span-7 bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-          <div class="flex flex-wrap items-center justify-between gap-1 mb-2">
-            <h3 class="text-xs sm:text-sm font-black text-slate-800">📊 月別 配信数推移（時間帯別）</h3>
-            <span id="streamMonthlySummary" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700">合計：0回</span>
-          </div>
-          <div class="h-48"><canvas id="chartStreamMonthly"></canvas></div>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
-        <div class="md:col-span-5 bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
           <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
-            <h3 class="text-xs sm:text-sm font-black text-slate-800">🔥 曜日 × 時間帯 配信ヒートマップ</h3>
+            <div class="flex flex-wrap items-center gap-2">
+              <h3 id="streamHeatmapTitle" class="text-xs sm:text-sm font-black text-slate-800">🔥 曜日 × 時間帯 配信ヒートマップ</h3>
+              <!-- 総数モード専用：ヒートマップ軸切替 -->
+              <div id="streamHeatmapAxisWrap" class="inline-flex items-center gap-1 text-[10px] font-bold">
+                <select id="hmRowAxisSelect" onchange="onHeatmapAxisChange('row')" class="px-1.5 py-0.5 rounded-lg border border-purple-200 bg-purple-50 text-purple-900 cursor-pointer focus:outline-none">
+                  <option value="time">時間帯</option>
+                  <option value="dow">曜日</option>
+                  <option value="duration">配信あたりの時間</option>
+                  <option value="category">配信種別</option>
+                </select>
+                <span class="text-slate-400">×</span>
+                <select id="hmColAxisSelect" onchange="onHeatmapAxisChange('col')" class="px-1.5 py-0.5 rounded-lg border border-purple-200 bg-purple-50 text-purple-900 cursor-pointer focus:outline-none">
+                  <option value="dow">曜日</option>
+                  <option value="time">時間帯</option>
+                  <option value="duration">配信あたりの時間</option>
+                  <option value="category">配信種別</option>
+                </select>
+              </div>
+            </div>
             <div class="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">
               <span>低</span>
               <span class="w-3 h-3 rounded-sm" style="background-color:rgba(147,51,234,0.16);"></span>
@@ -424,34 +476,37 @@
               <span>高</span>
             </div>
           </div>
-          <div id="heatmapContainer" class="overflow-x-auto mt-1"></div>
+          <div id="heatmapContainer" class="overflow-x-auto max-h-56 custom-scroll mt-1"></div>
         </div>
+      </div>
 
-        <div class="md:col-span-7 bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-          <div class="flex flex-wrap items-center justify-between gap-1.5 mb-2">
-            <h3 class="text-xs sm:text-sm font-black text-slate-800">📝 配信詳細ログ</h3>
-            <div class="flex flex-wrap items-center gap-1.5">
-              <select id="logTagFilter" onchange="renderStreamLogsTable()" class="px-2 py-1 rounded-lg border border-purple-200 text-[11px] font-bold text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-purple-300">
-                <option value="all">すべての種別</option>
-              </select>
-              <input id="logSearchInput" type="text" oninput="renderStreamLogsTable()" placeholder="タイトル検索..." class="px-2 py-1 rounded-lg border border-purple-200 text-[11px] focus:outline-none focus:ring-2 focus:ring-purple-300 w-32 sm:w-40" />
-              <button id="sortBtn-stream" onclick="toggleSortOrder('stream')" class="px-2 py-1 rounded-lg border border-purple-200 text-[11px] font-bold text-purple-700 hover:bg-purple-50 cursor-pointer">日付：降順 ↓</button>
-            </div>
+      <!-- 3段目：配信詳細ログ（全幅） -->
+      <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+        <div class="flex flex-wrap items-center justify-between gap-1.5 mb-2">
+          <h3 class="text-xs sm:text-sm font-black text-slate-800">📝 配信詳細ログ</h3>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <select id="logTagFilter" onchange="renderStreamLogsTable()" class="px-2 py-1 rounded-lg border border-purple-200 text-[11px] font-bold text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-purple-300">
+              <option value="all">すべての種別</option>
+            </select>
+            <input id="logSearchInput" type="text" oninput="renderStreamLogsTable()" placeholder="タイトル検索..." class="px-2 py-1 rounded-lg border border-purple-200 text-[11px] focus:outline-none focus:ring-2 focus:ring-purple-300 w-36 sm:w-48" />
+            <button id="sortBtn-stream" onclick="toggleSortOrder('stream')" class="px-2 py-1 rounded-lg border border-purple-200 text-[11px] font-bold text-purple-700 hover:bg-purple-50 cursor-pointer">日付：降順 ↓</button>
           </div>
-          <div class="overflow-x-auto max-h-64 custom-scroll">
-            <table class="w-full text-[11px] text-left">
-              <thead class="bg-purple-50 text-purple-950 sticky top-0 z-10">
-                <tr>
-                  <th class="py-1.5 px-2 rounded-tl-lg cursor-pointer hover:bg-purple-100" onclick="toggleSortOrder('stream')">日時 ⇅</th>
-                  <th class="py-1.5 px-2">タイトル</th>
-                  <th class="py-1.5 px-2">種別タグ</th>
-                  <th class="py-1.5 px-2 text-right">時間</th>
-                  <th class="py-1.5 px-1.5 rounded-tr-lg text-center w-9">編集</th>
-                </tr>
-              </thead>
-              <tbody id="streamLogsTableBody" class="divide-y divide-slate-100"></tbody>
-            </table>
-          </div>
+        </div>
+        <!-- 月別切り替えボタン -->
+        <div id="streamLogMonthPills" class="flex flex-wrap items-center gap-1 mb-2 pb-2 border-b border-slate-100"></div>
+        <div class="overflow-x-auto max-h-80 custom-scroll">
+          <table class="w-full text-[11px] text-left">
+            <thead class="bg-purple-50 text-purple-950 sticky top-0 z-10">
+              <tr>
+                <th class="py-1.5 px-2 rounded-tl-lg cursor-pointer hover:bg-purple-100" onclick="toggleSortOrder('stream')">日時 ⇅</th>
+                <th class="py-1.5 px-2">タイトル</th>
+                <th class="py-1.5 px-2">種別タグ</th>
+                <th class="py-1.5 px-2 text-right">時間</th>
+                <th class="py-1.5 px-1.5 rounded-tr-lg text-center w-9">編集</th>
+              </tr>
+            </thead>
+            <tbody id="streamLogsTableBody" class="divide-y divide-slate-100"></tbody>
+          </table>
         </div>
       </div>
     </section>
@@ -460,29 +515,11 @@
          TAB 5: 📝 歌枠＆セトリ
          =================================================================== -->
     <section id="tab-singing" class="hidden space-y-3">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-          <div class="flex items-center justify-between mb-2">
-            <h3 class="text-xs sm:text-sm font-black text-slate-800">🗓️ 月別 開催回数推移（種別別）</h3>
-            <span id="setlistSessionsMonthlyBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700">合計 0回</span>
-          </div>
-          <div class="h-48"><canvas id="chartSetlistSessionsMonthly"></canvas></div>
-        </div>
-
-        <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
-          <div class="flex items-center justify-between mb-2">
-            <h3 class="text-xs sm:text-sm font-black text-slate-800">📅 月別 歌唱曲数推移（種別別）</h3>
-            <span id="setlistMonthlyBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-pink-50 text-pink-700">合計 0曲</span>
-          </div>
-          <div class="h-48"><canvas id="chartSetlistMonthly"></canvas></div>
-        </div>
-      </div>
-
-      <!-- 区分切り替えバー -->
-      <div class="bg-white rounded-2xl px-3.5 py-2 card-shadow border border-purple-100/80 flex flex-wrap items-center justify-between gap-2">
-        <div class="flex items-center gap-1.5 text-xs font-black text-slate-700">
+      <!-- 表示対象 全体切り替えバー（タブ内の全グラフ・一覧・詳細ログに連動） -->
+      <div class="bg-white rounded-2xl px-3.5 py-2.5 card-shadow border border-purple-100/80 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-1.5 text-xs sm:text-sm font-black text-slate-800">
           <span>🔀</span>
-          <span>レパートリー＆最多歌唱 表示対象：</span>
+          <span>表示対象（タブ全体）：</span>
         </div>
         <div class="flex flex-wrap items-center gap-1 bg-purple-50/80 p-1 rounded-xl border border-purple-100">
           <button id="slScopeBtn-stream" onclick="setSetlistAnalyticsScope('stream')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-700 text-white shadow-sm transition cursor-pointer">🎙️ 歌枠（カラオケ含む）</button>
@@ -490,6 +527,24 @@
           <button id="slScopeBtn-live_solo" onclick="setSetlistAnalyticsScope('live_solo')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-pink-700 hover:bg-pink-100 transition cursor-pointer">🎸 LIVE (solo)</button>
           <button id="slScopeBtn-live_comp" onclick="setSetlistAnalyticsScope('live_comp')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-cyan-700 hover:bg-cyan-100 transition cursor-pointer">🎸 LIVE (Comp・Guest)</button>
           <button id="slScopeBtn-all" onclick="setSetlistAnalyticsScope('all')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-slate-600 hover:bg-slate-200/70 transition cursor-pointer">🎵 全種別</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-xs sm:text-sm font-black text-slate-800">🗓️ 月別回数</h3>
+            <span id="setlistSessionsMonthlyBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700">合計：0回 / 月平均：0.0回</span>
+          </div>
+          <div class="h-48"><canvas id="chartSetlistSessionsMonthly"></canvas></div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-xs sm:text-sm font-black text-slate-800">📅 月別曲数</h3>
+            <span id="setlistMonthlyBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-pink-50 text-pink-700">合計：0曲 / 月平均：0.0曲</span>
+          </div>
+          <div class="h-48"><canvas id="chartSetlistMonthly"></canvas></div>
         </div>
       </div>
 
@@ -528,6 +583,32 @@
 
         <div id="setlistCardsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 max-h-80 overflow-y-auto custom-scroll pr-1"></div>
       </div>
+
+      <!-- セットリスト詳細ログ（日別・配信回別） -->
+      <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80">
+        <div class="flex flex-wrap items-center justify-between gap-1.5 mb-2">
+          <h3 class="text-xs sm:text-sm font-black text-slate-800">📝 セットリスト詳細ログ</h3>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <input id="setlistLogSearchInput" type="text" oninput="renderSetlistLogsTable()" placeholder="タイトル・曲名検索..." class="px-2 py-1 rounded-lg border border-purple-200 text-[11px] focus:outline-none focus:ring-2 focus:ring-purple-300 w-36 sm:w-48" />
+            <button id="sortBtn-setlistLog" onclick="toggleSortOrder('setlistLog')" class="px-2 py-1 rounded-lg border border-purple-200 text-[11px] font-bold text-purple-700 hover:bg-purple-50 cursor-pointer">日付：降順 ↓</button>
+          </div>
+        </div>
+        <!-- 月別切り替えボタン -->
+        <div id="setlistLogMonthPills" class="flex flex-wrap items-center gap-1 mb-2 pb-2 border-b border-slate-100"></div>
+        <div class="overflow-x-auto max-h-80 custom-scroll">
+          <table class="w-full text-[11px] text-left">
+            <thead class="bg-purple-50 text-purple-950 sticky top-0 z-10">
+              <tr>
+                <th class="py-1.5 px-2 rounded-tl-lg cursor-pointer hover:bg-purple-100" onclick="toggleSortOrder('setlistLog')">日付 ⇅</th>
+                <th class="py-1.5 px-2">配信 / LIVE タイトル</th>
+                <th class="py-1.5 px-2">種別</th>
+                <th class="py-1.5 px-2 rounded-tr-lg text-right">曲数</th>
+              </tr>
+            </thead>
+            <tbody id="setlistLogsTableBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
     </section>
 
     <!-- ===================================================================
@@ -537,10 +618,10 @@
       <!-- 比較年度選択バー -->
       <div class="bg-white rounded-2xl px-3.5 py-2.5 card-shadow border border-purple-100/80 flex flex-wrap items-center justify-between gap-2">
         <h3 class="text-xs sm:text-sm font-black text-slate-800">⚖️ 比較する年度を選択（2020年〜）</h3>
-        <div class="flex flex-wrap items-center gap-1.5 text-xs">
-          <select id="cmpYearA" onchange="renderArchiveComparison()" class="w-44 px-2.5 py-1.5 rounded-xl border border-purple-200 font-bold text-purple-900 bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-300 cursor-pointer"></select>
-          <span class="font-black text-slate-400 px-0.5">vs</span>
-          <select id="cmpYearB" onchange="renderArchiveComparison()" class="w-44 px-2.5 py-1.5 rounded-xl border border-sky-200 font-bold text-sky-900 bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-300 cursor-pointer"></select>
+        <div class="flex flex-nowrap items-center gap-1.5 text-xs w-full sm:w-auto">
+          <select id="cmpYearA" onchange="renderArchiveComparison()" class="flex-1 min-w-0 sm:flex-none sm:w-44 px-2.5 py-1.5 rounded-xl border border-purple-200 font-bold text-purple-900 bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-300 cursor-pointer"></select>
+          <span class="font-black text-slate-400 px-0.5 shrink-0">vs</span>
+          <select id="cmpYearB" onchange="renderArchiveComparison()" class="flex-1 min-w-0 sm:flex-none sm:w-44 px-2.5 py-1.5 rounded-xl border border-sky-200 font-bold text-sky-900 bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-300 cursor-pointer"></select>
         </div>
       </div>
 
@@ -565,10 +646,10 @@
 
         <div class="bg-white rounded-2xl p-3 card-shadow border border-purple-100/80 space-y-2">
           <div class="flex flex-wrap items-center justify-between gap-1.5">
-            <h3 class="text-xs sm:text-sm font-black text-slate-800" title="各軸の最大値＝100点基準でスコア化（ホバーで実数値を表示）">🕸️ 活動バランス比較（6軸レーダーチャート）</h3>
+            <h3 class="text-xs sm:text-sm font-black text-slate-800" title="各軸の最大値＝100点基準でスコア化（ホバーで実数値を表示）">🕸️ 活動バランス比較</h3>
             <div class="inline-flex bg-purple-50 p-0.5 rounded-lg border border-purple-100 text-[10px] font-bold">
-              <button id="radarScaleBtn-all" onclick="setRadarScaleMode('all')" class="px-2 py-0.5 rounded-md bg-purple-700 text-white shadow-sm transition cursor-pointer">過去最大</button>
-              <button id="radarScaleBtn-pair" onclick="setRadarScaleMode('pair')" class="px-2 py-0.5 rounded-md text-purple-800 hover:bg-purple-100 transition cursor-pointer">2か年の最大</button>
+              <button id="radarScaleBtn-all" onclick="setRadarScaleMode('all')" class="px-2 py-0.5 rounded-md text-purple-800 hover:bg-purple-100 transition cursor-pointer">過去最大</button>
+              <button id="radarScaleBtn-pair" onclick="setRadarScaleMode('pair')" class="px-2 py-0.5 rounded-md bg-purple-700 text-white shadow-sm transition cursor-pointer">2か年の最大</button>
             </div>
           </div>
           <div class="h-64"><canvas id="chartArchiveRadar"></canvas></div>
@@ -581,6 +662,7 @@
           <h3 class="text-xs sm:text-sm font-black text-slate-800">🔄 活動スタイル変化（実数比較）</h3>
           <div class="flex flex-wrap items-center gap-1 bg-purple-50/80 p-1 rounded-xl border border-purple-100 text-[11px] font-bold">
             <button id="styleBtn-time" onclick="setStyleShiftMode('time')" class="px-2.5 py-1 rounded-lg bg-purple-700 text-white shadow-sm transition cursor-pointer">🕐 時間帯</button>
+            <button id="styleBtn-duration" onclick="setStyleShiftMode('duration')" class="px-2.5 py-1 rounded-lg text-purple-800 hover:bg-purple-100 transition cursor-pointer">⏱️ 配信あたりの時間</button>
             <button id="styleBtn-streamCat" onclick="setStyleShiftMode('streamCat')" class="px-2.5 py-1 rounded-lg text-purple-800 hover:bg-purple-100 transition cursor-pointer">🎙️ 配信カテゴリ</button>
             <button id="styleBtn-eventChannel" onclick="setStyleShiftMode('eventChannel')" class="px-2.5 py-1 rounded-lg text-purple-800 hover:bg-purple-100 transition cursor-pointer">🎪 イベント種別</button>
             <button id="styleBtn-fullType" onclick="setStyleShiftMode('fullType')" class="px-2.5 py-1 rounded-lg text-purple-800 hover:bg-purple-100 transition cursor-pointer">🎬 動画種別</button>

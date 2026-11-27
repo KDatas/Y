@@ -1,0 +1,15 @@
+{
+  "isSample": false,
+  "loadedFlags": {
+    "streaming": false,
+    "song": false,
+    "short": false,
+    "setlist": false,
+    "event": false
+  },
+  "streams": [],
+  "fullVideos": [],
+  "shortVideos": [],
+  "setlist": [],
+  "events": []
+}
