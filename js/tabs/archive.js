@@ -151,7 +151,15 @@ function renderArchiveComparison() {
         }
       },
       plugins: {
-        legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10 } }
+        legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const v = Number(ctx.parsed.y) || 0;
+              return `${ctx.dataset.label}: ${fmtVal(v)}${metricMeta.unit}`;
+            }
+          }
+        }
       },
       scales: {
         x: { grid: { display: false }, ticks: { font: { size: 10 } } },

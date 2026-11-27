@@ -265,6 +265,15 @@ function renderOverviewSection() {
             enabled: overviewChartMode === 'compare',
             fixed1: cfg.fixed1
           },
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const v = Number(ctx.parsed.y) || 0;
+                const vStr = cfg.fixed1 ? v.toFixed(1) : String(Math.round(v * 10) / 10);
+                return `${ctx.dataset.label}: ${vStr}${cfg.unit}`;
+              }
+            }
+          },
           legend: {
             position: 'bottom',
             labels: { font: { size: 10 }, boxWidth: 10 }

@@ -5,7 +5,7 @@ function setStreamViewMode(mode) {
   streamViewMode = mode;
   streamLegendAllHidden = false;
   updateStreamLegendBulkBtn();
-  ['total', 'time', 'category', 'duration'].forEach(m => {
+  ['total', 'time', 'duration'].forEach(m => {
     const btn = document.getElementById(`stModeBtn-${m}`);
     if (!btn) return;
     btn.className = m === mode
@@ -285,6 +285,11 @@ function renderStreamingSection() {
       },
       plugins: {
         barTotal: { enabled: true, fixed1: true, unit: 'h', summaryElId: 'streamHoursSummary', monthDiv: mDiv },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.dataset.label}: ${(Number(ctx.parsed.y) || 0).toFixed(1)}h`
+          }
+        },
         legend: {
           display: streamViewMode !== 'total',
           position: 'bottom',

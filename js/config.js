@@ -121,7 +121,7 @@ const TIME_BANDS = [
   { key: 'night',    label: '夜 (19-23時)', short: '夜',   color: '#c084fc' },
   { key: 'evening',  label: '夕方 (16-18時)', short: '夕方', color: '#ef4444' },
   { key: 'day',      label: '昼 (10-15時)', short: '昼',   color: '#f59e0b' },
-  { key: 'morning',  label: '朝 (5-9時)',   short: '朝',   color: '#eab308' }
+  { key: 'morning',  label: '朝 (5-9時)',   short: '朝',   color: '#10b981' }
 ];
 
 function hashColor(str) {

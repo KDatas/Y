@@ -406,7 +406,6 @@
           <div class="inline-flex flex-wrap items-center gap-1 bg-purple-50/80 p-1 rounded-xl border border-purple-100 text-[11px] font-bold">
             <button type="button" id="stModeBtn-total" onclick="setStreamViewMode('total')" class="px-2.5 py-1 rounded-lg bg-purple-700 text-white shadow-sm transition cursor-pointer">📊 総数</button>
             <button type="button" id="stModeBtn-time" onclick="setStreamViewMode('time')" class="px-2.5 py-1 rounded-lg text-purple-800 hover:bg-purple-100 transition cursor-pointer">🕐 時間帯</button>
-            <button type="button" id="stModeBtn-category" onclick="setStreamViewMode('category')" class="px-2.5 py-1 rounded-lg text-purple-800 hover:bg-purple-100 transition cursor-pointer">🏷️ 配信種別</button>
             <button type="button" id="stModeBtn-duration" onclick="setStreamViewMode('duration')" class="px-2.5 py-1 rounded-lg text-purple-800 hover:bg-purple-100 transition cursor-pointer">⏱️ 配信あたりの時間</button>
           </div>
           <!-- 棒グラフ凡例の一括非表示／すべて表示トグルボタン（総数以外のモードで表示） -->
@@ -452,10 +451,10 @@
               <!-- 総数モード専用：ヒートマップ軸切替 -->
               <div id="streamHeatmapAxisWrap" class="inline-flex items-center gap-1 text-[10px] font-bold">
                 <select id="hmRowAxisSelect" onchange="onHeatmapAxisChange('row')" class="px-1.5 py-0.5 rounded-lg border border-purple-200 bg-purple-50 text-purple-900 cursor-pointer focus:outline-none">
+                  <option value="category" selected>配信種別</option>
                   <option value="time">時間帯</option>
                   <option value="dow">曜日</option>
                   <option value="duration">配信あたりの時間</option>
-                  <option value="category">配信種別</option>
                 </select>
                 <span class="text-slate-400">×</span>
                 <select id="hmColAxisSelect" onchange="onHeatmapAxisChange('col')" class="px-1.5 py-0.5 rounded-lg border border-purple-200 bg-purple-50 text-purple-900 cursor-pointer focus:outline-none">
